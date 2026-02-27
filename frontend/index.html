@@ -1,0 +1,35 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Physics Diagram Generator</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+    <div class="container">
+        <div class="header">
+            <span class="label-tag">⚛ Physics Lens</span>
+            <h1>Diagram Generator</h1>
+            <p class="subtitle">Describe a physics problem and get an instant visual diagram.</p>
+        </div>
+
+        <div class="input-panel">
+            <label class="input-label" for="problemInput">Problem Statement</label>
+            <textarea id="problemInput" placeholder="e.g. A block on a frictionless inclined plane at 30° with forces of gravity and normal force..."></textarea>
+        </div>
+
+        <button onclick="generateDiagram()">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                <polygon points="5 3 19 12 5 21 5 3"/>
+            </svg>
+            Generate Diagram
+        </button>
+
+        <div id="diagramContainer"></div>
+    </div>
+
+    <script src="script.js"></script>
+</body>
+</html>

@@ -1,24 +1,95 @@
-<svg width="600" height="500" xmlns="http://www.w3.org/2000/svg">
+<svg width="800" height="550"
+         xmlns="http://www.w3.org/2000/svg">
   <defs>
-    <marker id="arrowhead" markerWidth="10" markerHeight="7"
-                    refX="10" refY="3.5" orient="auto">
-      <polygon points="0 0, 10 3.5, 0 7" fill="red"/>
+    <marker id="arrowhead_1f77b4" markerWidth="12" markerHeight="8"
+                    refX="12" refY="4" orient="auto">
+      <polygon points="0 0, 12 4, 0 8" fill="#1f77b4"/>
+    </marker>
+    <marker id="arrowhead_d62728" markerWidth="12" markerHeight="8"
+                    refX="12" refY="4" orient="auto">
+      <polygon points="0 0, 12 4, 0 8" fill="#d62728"/>
+    </marker>
+    <marker id="arrowhead_2ca02c" markerWidth="12" markerHeight="8"
+                    refX="12" refY="4" orient="auto">
+      <polygon points="0 0, 12 4, 0 8" fill="#2ca02c"/>
+    </marker>
+    <marker id="arrowhead_9467bd" markerWidth="12" markerHeight="8"
+                    refX="12" refY="4" orient="auto">
+      <polygon points="0 0, 12 4, 0 8" fill="#9467bd"/>
     </marker>
   </defs>
-  <line x1="100" y1="400" x2="400" y2="226.79491924311228"
-              stroke="black" stroke-width="3"/>
-  <rect x="225.0" y="288.39745962155615"
-              width="50" height="50"
-              fill="gray"
-              transform="rotate(-30 250.0 313.39745962155615)"/>
-  <line x1="250.0" y1="313.39745962155615"
-            x2="267.3205080756888" y2="303.39745962155615"
-            stroke="red" stroke-width="2"
-            marker-end="url(#arrowhead)"/>
-  <text x="272.3205080756888" y="308.39745962155615" font-size="14" fill="white">20N</text>
-  <line x1="250.0" y1="313.39745962155615"
-            x2="250.0" y2="413.39745962155615"
-            stroke="red" stroke-width="2"
-            marker-end="url(#arrowhead)"/>
-  <text x="255.0" y="418.39745962155615" font-size="14" fill="white">mg</text>
+  <!-- Background -->
+  <rect width="100%" height="100%" fill="#f8f9fa"/>
+  <!-- Incline -->
+  <line x1="150" y1="450"
+              x2="600" y2="190.1923788646684"
+              stroke="black"
+              stroke-width="5"/>
+  <!-- Block -->
+  <rect x="337.5" y="282.5961894323342"
+              width="75"
+              height="75"
+              fill="#6c757d"
+              rx="10"
+              transform="rotate(-30 375.0 320.0961894323342)"/>
+  <!-- Mass Label -->
+  <text x="375.0"
+              y="245.0961894323342"
+              text-anchor="middle"
+              font-size="18"
+              font-weight="bold">
+              3 kg
+        </text>
+  <path d="M 220 450
+             A 70 70 0 0 0
+             210.62177826491072
+             415.0"
+          fill="none"
+          stroke="black"
+          stroke-width="3"/>
+  <text x="200" y="435"
+          font-size="20"
+          font-weight="bold">
+          30°
+    </text>
+  <line x1="375.0" y1="320.0961894323342"
+          x2="375.0" y2="420.0961894323342"
+          stroke="#d62728" stroke-width="4"
+          marker-end="url(#arrowhead_d62728)"/>
+  <text x="383.0" y="412.0961894323342"
+          font-size="18"
+          font-weight="bold"
+          fill="#d62728">
+          mg
+    </text>
+  <line x1="375.0" y1="320.0961894323342"
+          x2="325.0" y2="233.49364905389032"
+          stroke="#2ca02c" stroke-width="4"
+          marker-end="url(#arrowhead_2ca02c)"/>
+  <text x="300.0" y="225.49364905389032"
+          font-size="18"
+          font-weight="bold"
+          fill="#2ca02c">
+          N
+    </text>
+  <line x1="375.0" y1="320.0961894323342"
+          x2="288.3974596215561" y2="370.0961894323342"
+          stroke="#9467bd" stroke-width="4"
+          marker-end="url(#arrowhead_9467bd)"/>
+  <text x="263.3974596215561" y="362.0961894323342"
+          font-size="18"
+          font-weight="bold"
+          fill="#9467bd">
+          f
+    </text>
+  <line x1="375.0" y1="320.0961894323342"
+          x2="340.3589838486225" y2="340.0961894323342"
+          stroke="#1f77b4" stroke-width="4"
+          marker-end="url(#arrowhead_1f77b4)"/>
+  <text x="315.3589838486225" y="332.0961894323342"
+          font-size="18"
+          font-weight="bold"
+          fill="#1f77b4">
+          20N
+    </text>
 </svg>
