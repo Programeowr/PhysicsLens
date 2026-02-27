@@ -15,7 +15,17 @@ class Settings(BaseSettings):
     )
     debug: bool = Field(default=False, description="Enable debug mode")
     gemini_model: str = Field(
-        default="gemini-2.5-flash", description="Gemini model to use"
+        default="gemini-2.5-flash", description="Primary Gemini model (fast)"
+    )
+    gemini_fallback_model: str = Field(
+        default="gemini-2.5-pro", description="Fallback Gemini model (accurate)"
+    )
+    thinking_budget: int = Field(
+        default=1024,
+        description="Thinking token budget for Flash (0=disabled, up to 8192)"
+    )
+    cache_max_size: int = Field(
+        default=100, description="Max LRU cache entries for parsed results"
     )
 
     model_config = {"env_file": ".env", "env_file_encoding": "utf-8"}
