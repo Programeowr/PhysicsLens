@@ -21,6 +21,8 @@ class ObjectType(str, Enum):
     cart = "cart"
     rope = "rope"
     pulley_wheel = "pulley_wheel"
+    wedge = "wedge"
+    spring_obj = "spring_obj"
 
 
 class SurfaceType(str, Enum):
@@ -28,6 +30,8 @@ class SurfaceType(str, Enum):
     inclined_plane = "inclined_plane"
     vertical_wall = "vertical_wall"
     pulley = "pulley"
+    circular_path = "circular_path"
+    fluid_surface = "fluid_surface"
 
 
 class ForceType(str, Enum):
@@ -37,6 +41,9 @@ class ForceType(str, Enum):
     tension = "tension"
     spring = "spring"
     friction_force = "friction_force"
+    buoyancy = "buoyancy"
+    centripetal_force = "centripetal_force"
+    drag = "drag"
 
 
 class ForceDirection(str, Enum):
@@ -49,6 +56,9 @@ class ForceDirection(str, Enum):
     vertical_down = "vertical_down"
     vertical_up = "vertical_up"
     perpendicular_to_surface = "perpendicular_to_surface"
+    centripetal = "centripetal"
+    tangential = "tangential"
+    radially_outward = "radially_outward"
 
 
 # ── Sub-models ───────────────────────────────────────────────────────────
@@ -64,7 +74,7 @@ class Surface(BaseModel):
     """A surface or constraint in the problem."""
     id: str = Field(..., description="Unique identifier for this surface")
     type: SurfaceType = Field(..., description="Type of surface")
-    angle: Optional[float] = Field(None, description="Angle in degrees (for inclines)", ge=0, le=90)
+    angle: Optional[float] = Field(None, description="Angle in degrees", ge=0, le=360)
     friction_coefficient: Optional[float] = Field(None, description="Coefficient of friction", ge=0, le=2.0)
 
 

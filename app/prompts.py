@@ -79,6 +79,52 @@ Output:
   "friction": null,
   "constants": {"gravity": 9.8}
 }
+
+### Example 5 — Connected Blocks
+Problem: "Two blocks of masses 4 kg and 6 kg are connected by a string on a frictionless horizontal surface. A force of 30 N is applied to the 6 kg block."
+Output:
+{
+  "objects": [
+    {"id": "block_1", "type": "block", "mass": 4},
+    {"id": "block_2", "type": "block", "mass": 6},
+    {"id": "string_1", "type": "rope", "mass": null}
+  ],
+  "surfaces": [{"id": "floor_1", "type": "horizontal_surface", "angle": null, "friction_coefficient": null}],
+  "placements": [
+    {"object_id": "block_1", "surface_id": "floor_1"},
+    {"object_id": "block_2", "surface_id": "floor_1"}
+  ],
+  "forces": [
+    {"type": "gravity", "magnitude": 39.2, "direction": "vertical_down", "object_id": "block_1"},
+    {"type": "normal", "magnitude": null, "direction": "vertical_up", "object_id": "block_1"},
+    {"type": "tension", "magnitude": null, "direction": "right", "object_id": "block_1"},
+    {"type": "gravity", "magnitude": 58.8, "direction": "vertical_down", "object_id": "block_2"},
+    {"type": "normal", "magnitude": null, "direction": "vertical_up", "object_id": "block_2"},
+    {"type": "tension", "magnitude": null, "direction": "left", "object_id": "block_2"},
+    {"type": "applied", "magnitude": 30, "direction": "right", "object_id": "block_2"}
+  ],
+  "friction": null,
+  "constants": {"gravity": 9.8}
+}
+
+### Example 6 — Spring-Mass System
+Problem: "A 2 kg block is attached to a horizontal spring with spring constant 200 N/m on a frictionless surface. The spring is compressed by 0.1 m."
+Output:
+{
+  "objects": [
+    {"id": "block_1", "type": "block", "mass": 2},
+    {"id": "spring_1", "type": "spring_obj", "mass": null}
+  ],
+  "surfaces": [{"id": "floor_1", "type": "horizontal_surface", "angle": null, "friction_coefficient": null}],
+  "placements": [{"object_id": "block_1", "surface_id": "floor_1"}],
+  "forces": [
+    {"type": "gravity", "magnitude": 19.6, "direction": "vertical_down", "object_id": "block_1"},
+    {"type": "normal", "magnitude": null, "direction": "vertical_up", "object_id": "block_1"},
+    {"type": "spring", "magnitude": 20, "direction": "right", "object_id": "block_1"}
+  ],
+  "friction": null,
+  "constants": {"gravity": 9.8}
+}
 """
 
 
@@ -94,14 +140,14 @@ Extract all physical entities from the given problem and return STRICTLY valid J
   "objects": [
     {{
       "id": "string (unique identifier, e.g. block_1, mass_a)",
-      "type": "block | sphere | body | cart | rope | pulley_wheel",
+      "type": "block | sphere | body | cart | rope | pulley_wheel | wedge | spring_obj",
       "mass": number or null (kg)
     }}
   ],
   "surfaces": [
     {{
       "id": "string (unique identifier)",
-      "type": "horizontal_surface | inclined_plane | vertical_wall | pulley",
+      "type": "horizontal_surface | inclined_plane | vertical_wall | pulley | circular_path | fluid_surface",
       "angle": number or null (degrees, for inclined planes),
       "friction_coefficient": number or null
     }}
@@ -114,9 +160,9 @@ Extract all physical entities from the given problem and return STRICTLY valid J
   ],
   "forces": [
     {{
-      "type": "applied | gravity | normal | tension | spring | friction_force",
+      "type": "applied | gravity | normal | tension | spring | friction_force | buoyancy | centripetal_force | drag",
       "magnitude": number or null (Newtons),
-      "direction": "up | down | left | right | up_along_plane | down_along_plane | vertical_down | vertical_up | perpendicular_to_surface",
+      "direction": "up | down | left | right | up_along_plane | down_along_plane | vertical_down | vertical_up | perpendicular_to_surface | centripetal | tangential | radially_outward",
       "object_id": "string (must match an object id)"
     }}
   ],
@@ -173,14 +219,14 @@ If the image is unclear or doesn't contain a physics problem, return an empty st
   "objects": [
     {{
       "id": "string (unique identifier, e.g. block_1, mass_a)",
-      "type": "block | sphere | body | cart | rope | pulley_wheel",
+      "type": "block | sphere | body | cart | rope | pulley_wheel | wedge | spring_obj",
       "mass": number or null (kg)
     }}
   ],
   "surfaces": [
     {{
       "id": "string (unique identifier)",
-      "type": "horizontal_surface | inclined_plane | vertical_wall | pulley",
+      "type": "horizontal_surface | inclined_plane | vertical_wall | pulley | circular_path | fluid_surface",
       "angle": number or null (degrees, for inclined planes),
       "friction_coefficient": number or null
     }}
@@ -193,9 +239,9 @@ If the image is unclear or doesn't contain a physics problem, return an empty st
   ],
   "forces": [
     {{
-      "type": "applied | gravity | normal | tension | spring | friction_force",
+      "type": "applied | gravity | normal | tension | spring | friction_force | buoyancy | centripetal_force | drag",
       "magnitude": number or null (Newtons),
-      "direction": "up | down | left | right | up_along_plane | down_along_plane | vertical_down | vertical_up | perpendicular_to_surface",
+      "direction": "up | down | left | right | up_along_plane | down_along_plane | vertical_down | vertical_up | perpendicular_to_surface | centripetal | tangential | radially_outward",
       "object_id": "string (must match an object id)"
     }}
   ],
