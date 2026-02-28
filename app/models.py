@@ -32,6 +32,7 @@ class SurfaceType(str, Enum):
     pulley = "pulley"
     circular_path = "circular_path"
     fluid_surface = "fluid_surface"
+    elevator_floor = "elevator_floor"
 
 
 class ForceType(str, Enum):
