@@ -99,6 +99,13 @@ class Friction(BaseModel):
     coefficient: Optional[float] = Field(None, description="Coefficient of friction", ge=0, le=2.0)
 
 
+class Acceleration(BaseModel):
+    """System acceleration (e.g., elevator accelerating up/down)."""
+    magnitude: float = Field(..., description="Acceleration magnitude in m/s²", ge=0)
+    direction: ForceDirection = Field(..., description="Direction of acceleration (up/down)")
+    object_id: str = Field(..., description="ID of the object being accelerated")
+
+
 class PhysicsConstants(BaseModel):
     """Physical constants used in the problem."""
     gravity: float = Field(default=9.8, description="Acceleration due to gravity (m/s²)")
@@ -119,6 +126,7 @@ class ParsedPhysicsProblem(BaseModel):
     placements: list[Placement] = Field(default_factory=list)
     forces: list[Force] = Field(default_factory=list)
     friction: Optional[Friction] = None
+    acceleration: Optional[Acceleration] = None
     constants: PhysicsConstants = Field(default_factory=PhysicsConstants)
 
     @model_validator(mode="after")

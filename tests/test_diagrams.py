@@ -62,12 +62,13 @@ PULLEY_DATA = ParsedPhysicsProblem.model_validate({
 
 VERTICAL_DATA = ParsedPhysicsProblem.model_validate({
     "objects": [{"id": "person_1", "type": "body", "mass": 60}],
-    "surfaces": [{"id": "elevator_floor", "type": "horizontal_surface"}],
+    "surfaces": [{"id": "elevator_floor", "type": "elevator_floor"}],
     "placements": [{"object_id": "person_1", "surface_id": "elevator_floor"}],
     "forces": [
         {"type": "gravity", "magnitude": 588.0, "direction": "vertical_down", "object_id": "person_1"},
         {"type": "normal", "magnitude": None, "direction": "vertical_up", "object_id": "person_1"},
     ],
+    "acceleration": {"magnitude": 2, "direction": "vertical_up", "object_id": "person_1"},
     "constants": {"gravity": 9.8},
 })
 
@@ -149,3 +150,7 @@ class TestVerticalDiagram:
     def test_contains_gravity(self):
         svg = generate_vertical_diagram(VERTICAL_DATA)
         assert "mg=588N" in svg
+
+    def test_contains_acceleration_value(self):
+        svg = generate_vertical_diagram(VERTICAL_DATA)
+        assert "a=2.0m/s" in svg

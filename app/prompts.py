@@ -77,6 +77,7 @@ Output:
     {"type": "normal", "magnitude": null, "direction": "vertical_up", "object_id": "person_1"}
   ],
   "friction": null,
+  "acceleration": {"magnitude": 2, "direction": "vertical_up", "object_id": "person_1"},
   "constants": {"gravity": 9.8}
 }
 
@@ -170,6 +171,11 @@ Extract all physical entities from the given problem and return STRICTLY valid J
     "object_id": "string",
     "coefficient": number or null
   }} or null,
+  "acceleration": {{
+    "magnitude": number (m/s²),
+    "direction": "vertical_up | vertical_down | up | down",
+    "object_id": "string (must match an object id)"
+  }} or null,
   "constants": {{
     "gravity": 9.8
   }}
@@ -180,7 +186,9 @@ Extract all physical entities from the given problem and return STRICTLY valid J
 - Always include normal force for objects resting on surfaces.
 - If friction is mentioned, add both a friction entry AND a friction_force in forces.
 - For pulleys, add tension forces on each connected mass.
-- Calculate gravity magnitude as mass × 9.8 when mass is given.
+- Calculate gravity magnitude as mass × g (use 9.8 by default, or the value specified in the problem e.g. g=10).
+- If the problem specifies a custom value for g (e.g. "take g=10"), use that value in constants.gravity.
+- If the system has acceleration (e.g. elevator accelerating upward/downward), include the acceleration field with magnitude, direction, and object_id.
 - Use only the allowed enum values for type and direction.
 - All object_id and surface_id references must match existing entries.
 - If something is not mentioned, use null for its value.
@@ -226,7 +234,7 @@ If the image is unclear or doesn't contain a physics problem, return an empty st
   "surfaces": [
     {{
       "id": "string (unique identifier)",
-      "type": "horizontal_surface | inclined_plane | vertical_wall | pulley | circular_path | fluid_surface",
+      "type": "horizontal_surface | inclined_plane | vertical_wall | pulley | circular_path | fluid_surface | elevator_floor",
       "angle": number or null (degrees, for inclined planes),
       "friction_coefficient": number or null
     }}
@@ -249,6 +257,11 @@ If the image is unclear or doesn't contain a physics problem, return an empty st
     "object_id": "string",
     "coefficient": number or null
   }} or null,
+  "acceleration": {{
+    "magnitude": number (m/s²),
+    "direction": "vertical_up | vertical_down | up | down",
+    "object_id": "string (must match an object id)"
+  }} or null,
   "constants": {{
     "gravity": 9.8
   }}
@@ -259,7 +272,9 @@ If the image is unclear or doesn't contain a physics problem, return an empty st
 - Always include normal force for objects resting on surfaces.
 - If friction is mentioned, add both a friction entry AND a friction_force in forces.
 - For pulleys, add tension forces on each connected mass.
-- Calculate gravity magnitude as mass x 9.8 when mass is given.
+- Calculate gravity magnitude as mass × g (use 9.8 by default, or the value specified in the problem e.g. g=10).
+- If the problem specifies a custom value for g (e.g. "take g=10"), use that value in constants.gravity.
+- If the system has acceleration (e.g. elevator accelerating upward/downward), include the acceleration field with magnitude, direction, and object_id.
 - Use only the allowed enum values for type and direction.
 - All object_id and surface_id references must match existing entries.
 - If something is not mentioned, use null for its value.

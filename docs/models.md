@@ -16,7 +16,7 @@ Constrain values to a known set:
 - `ObjectType` — `block`, `sphere`, `body`, `cart`, `rope`, `pulley_wheel`
 - `ForceType` — `applied`, `gravity`, `normal`, `tension`, `spring`, `friction_force`
 - `Direction` — `up`, `down`, `left`, `right`, `vertical_up`, `vertical_down`, `up_along_plane`, `down_along_plane`, `perpendicular_to_surface`
-- `SurfaceType` — `horizontal_surface`, `inclined_plane`, `vertical_wall`, `pulley`
+- `SurfaceType` — `horizontal_surface`, `inclined_plane`, `vertical_wall`, `pulley`, `elevator_floor`
 
 ### Core Models
 - `PhysicsObject` — an object with `id`, `type`, `mass`
@@ -24,6 +24,7 @@ Constrain values to a known set:
 - `Placement` — links an object to a surface
 - `Force` — a force with `type`, `magnitude`, `direction`, `object_id`
 - `Friction` — friction data with `object_id` and `coefficient`
+- `Acceleration` — acceleration data with `magnitude`, `direction`, and `object_id`
 - `PhysicsConstants` — constants like gravity (default 9.8)
 
 ### `ParsedPhysicsProblem` (root model)
