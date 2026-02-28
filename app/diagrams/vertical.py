@@ -41,14 +41,27 @@ def generate_vertical_diagram(data: ParsedPhysicsProblem) -> str:
     # Elevator label
     content += f'<text x="{elev_x + elev_w / 2}" y="{elev_y + 30}" font-size="14" font-family="Arial" fill="#64748B" text-anchor="middle">Elevator</text>'
 
-    # Upward acceleration arrow on the elevator
+    # Acceleration arrow on the elevator
     arr_x = elev_x + elev_w + 30
+    if data.acceleration:
+        accel = data.acceleration
+        accel_label = f"a={accel.magnitude}m/s²"
+        is_up = accel.direction.value in ("up", "vertical_up")
+        if is_up:
+            y1, y2 = elev_y + elev_h, elev_y + 60
+            accel_label += " ↑"
+        else:
+            y1, y2 = elev_y + 60, elev_y + elev_h
+            accel_label += " ↓"
+    else:
+        y1, y2 = elev_y + elev_h, elev_y + 60
+        accel_label = "acceleration"
     content += f"""
-    <line x1="{arr_x}" y1="{elev_y + elev_h}" x2="{arr_x}" y2="{elev_y + 60}"
+    <line x1="{arr_x}" y1="{y1}" x2="{arr_x}" y2="{y2}"
           stroke="#94A3B8" stroke-width="2" stroke-dasharray="5,3"
           marker-end="url(#arrowhead-gray)"/>
     <text x="{arr_x + 10}" y="{elev_y + elev_h / 2}" font-size="13"
-          font-family="Arial" fill="#94A3B8" writing-mode="tb">acceleration</text>
+          font-family="Arial" fill="#94A3B8" writing-mode="tb">{accel_label}</text>
     """
 
     # Block (person/object) on elevator floor

@@ -138,6 +138,7 @@ async def test_vertical():
             {"type": "gravity", "magnitude": 588.0, "direction": "vertical_down", "object_id": "person_1"},
             {"type": "normal", "magnitude": None, "direction": "vertical_up", "object_id": "person_1"},
         ],
+        "acceleration": {"magnitude": 2, "direction": "vertical_up", "object_id": "person_1"},
         "constants": {"gravity": 9.8},
     })
 
