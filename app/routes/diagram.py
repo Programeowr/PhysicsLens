@@ -28,13 +28,9 @@ def route_to_diagram(data: ParsedPhysicsProblem) -> str:
         return generate_incline_diagram(data)
     elif surface_type == SurfaceType.vertical_wall:
         return generate_vertical_diagram(data)
+    elif surface_type == SurfaceType.elevator_floor:
+        return generate_vertical_diagram(data)
     elif surface_type == SurfaceType.horizontal_surface:
-        # Check if it might be an elevator scenario (no friction, has normal force)
-        has_friction = data.friction is not None and data.friction.coefficient is not None
-        if not has_friction and any(f.type.value == "normal" for f in data.forces):
-            # Could be elevator — check if problem context suggests vertical motion
-            # Default to horizontal for now
-            return generate_horizontal_diagram(data)
         return generate_horizontal_diagram(data)
     else:
         # Default fallback to horizontal
@@ -136,7 +132,7 @@ async def test_vertical():
     """Render a sample elevator FBD."""
     sample = ParsedPhysicsProblem.model_validate({
         "objects": [{"id": "person_1", "type": "body", "mass": 60}],
-        "surfaces": [{"id": "elevator_floor", "type": "horizontal_surface"}],
+        "surfaces": [{"id": "elevator_floor", "type": "elevator_floor"}],
         "placements": [{"object_id": "person_1", "surface_id": "elevator_floor"}],
         "forces": [
             {"type": "gravity", "magnitude": 588.0, "direction": "vertical_down", "object_id": "person_1"},

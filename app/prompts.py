@@ -70,7 +70,7 @@ Problem: "A person of mass 60 kg stands on a weighing scale in an elevator that 
 Output:
 {
   "objects": [{"id": "person_1", "type": "body", "mass": 60}],
-  "surfaces": [{"id": "elevator_floor", "type": "horizontal_surface", "angle": null, "friction_coefficient": null}],
+  "surfaces": [{"id": "elevator_floor", "type": "elevator_floor", "angle": null, "friction_coefficient": null}],
   "placements": [{"object_id": "person_1", "surface_id": "elevator_floor"}],
   "forces": [
     {"type": "gravity", "magnitude": 588.0, "direction": "vertical_down", "object_id": "person_1"},
@@ -147,7 +147,7 @@ Extract all physical entities from the given problem and return STRICTLY valid J
   "surfaces": [
     {{
       "id": "string (unique identifier)",
-      "type": "horizontal_surface | inclined_plane | vertical_wall | pulley | circular_path | fluid_surface",
+      "type": "horizontal_surface | inclined_plane | vertical_wall | pulley | circular_path | fluid_surface | elevator_floor",
       "angle": number or null (degrees, for inclined planes),
       "friction_coefficient": number or null
     }}
