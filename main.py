@@ -1,14 +1,21 @@
-from fastapi import FastAPI
+from fastapi import FastAPI, Response
 from pydantic import BaseModel
 from google import genai
+from dotenv import load_dotenv
 import math
 import json
+import os
 
 # ----------------------------
-# CONFIGURE GEMINI API KEY
+# LOAD ENVIRONMENT VARIABLES
 # ----------------------------
 
-GEMINI_API_KEY = "AIzaSyA9TS43rDrJ6H76n7WNbOFkzF5VCJZtB_U"
+load_dotenv()
+
+GEMINI_API_KEY = os.getenv("GEMINI_API_KEY")
+if not GEMINI_API_KEY:
+    raise ValueError("GEMINI_API_KEY not found in .env file")
+
 client = genai.Client(api_key=GEMINI_API_KEY)
 
 app = FastAPI()
@@ -193,8 +200,6 @@ def diagram(data: dict):
     svg = generate_incline_diagram(data["data"])
     return svg, 200, {"Content-Type": "image/svg+xml"}
 
-
-from fastapi import Response
 
 @app.get("/test-diagram")
 def test_diagram():
