@@ -1,0 +1,41 @@
+<svg width="1200" height="700" viewBox="0 0 1200 700" xmlns="http://www.w3.org/2000/svg">
+  <style>
+    .bg { fill: #0f172a; }
+    .panel { fill: #1e293b; stroke: #475569; stroke-width: 2; rx: 14; }
+    .card { fill: #334155; stroke: #64748b; stroke-width: 2; rx: 12; }
+    .title { font: 700 28px Arial; fill: #f8fafc; }
+    .txt { font: 600 18px Arial; fill: #e2e8f0; }
+    .small { font: 500 15px Arial; fill: #cbd5e1; }
+    .accent { fill: #2563eb; rx: 10; }
+  </style>
+
+  <rect x="0" y="0" width="1200" height="700" class="bg"/>
+  <text x="40" y="50" class="title">PhysicsLens UI Wireframe (Proposed)</text>
+
+  <rect x="35" y="80" width="1130" height="585" class="panel"/>
+  <rect x="60" y="110" width="470" height="530" class="card"/>
+  <text x="90" y="150" class="txt">Input Panel</text>
+  <rect x="90" y="180" width="160" height="40" class="accent"/>
+  <text x="125" y="206" class="txt">Text Tab</text>
+  <rect x="270" y="180" width="170" height="40" class="card"/>
+  <text x="305" y="206" class="small">Image Tab</text>
+
+  <rect x="90" y="240" width="410" height="170" class="panel"/>
+  <text x="105" y="270" class="small">Paste physics problem statement...</text>
+  <rect x="90" y="430" width="410" height="120" class="panel"/>
+  <text x="105" y="470" class="small">Optional: set known values / assumptions</text>
+  <rect x="90" y="565" width="180" height="44" class="accent"/>
+  <text x="125" y="593" class="txt">Generate</text>
+
+  <rect x="550" y="110" width="590" height="530" class="card"/>
+  <text x="580" y="150" class="txt">Diagram Preview &amp; Output</text>
+  <rect x="580" y="180" width="530" height="350" class="panel"/>
+  <text x="610" y="360" class="small">[Generated Free Body Diagram]</text>
+
+  <rect x="580" y="545" width="130" height="40" class="accent"/>
+  <text x="615" y="571" class="txt">SVG</text>
+  <rect x="730" y="545" width="130" height="40" class="accent"/>
+  <text x="765" y="571" class="txt">PNG</text>
+  <rect x="880" y="545" width="230" height="40" class="accent"/>
+  <text x="915" y="571" class="txt">Copy JSON Output</text>
+</svg>

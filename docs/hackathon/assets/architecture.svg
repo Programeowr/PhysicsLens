@@ -1,0 +1,67 @@
+<svg width="1200" height="700" viewBox="0 0 1200 700" xmlns="http://www.w3.org/2000/svg">
+  <style>
+    .title { font: 700 30px Arial; fill: #111827; }
+    .layer { fill: #f8fafc; stroke: #1f2937; stroke-width: 2; rx: 20; }
+    .service { fill: #dbeafe; stroke: #2563eb; stroke-width: 2; rx: 14; }
+    .ext { fill: #ede9fe; stroke: #7c3aed; stroke-width: 2; rx: 14; }
+    .txt { font: 600 20px Arial; fill: #111827; }
+    .sub { font: 500 16px Arial; fill: #374151; }
+    .arrow { stroke: #0ea5e9; stroke-width: 3.5; marker-end: url(#arr); }
+  </style>
+  <defs>
+    <marker id="arr" markerWidth="10" markerHeight="10" refX="7" refY="3" orient="auto">
+      <path d="M0,0 L0,6 L8,3 z" fill="#0ea5e9" />
+    </marker>
+  </defs>
+  <text x="35" y="48" class="title">PhysicsLens Solution Architecture</text>
+
+  <rect x="30" y="80" width="1140" height="170" class="layer"/>
+  <text x="50" y="115" class="txt">Presentation Layer</text>
+  <rect x="70" y="135" width="300" height="90" class="service"/>
+  <text x="105" y="172" class="txt">React Web App</text>
+  <text x="100" y="198" class="sub">Prompt, upload, preview, export</text>
+
+  <rect x="430" y="135" width="300" height="90" class="service"/>
+  <text x="475" y="172" class="txt">API Client</text>
+  <text x="455" y="198" class="sub">Typed requests to backend</text>
+
+  <rect x="790" y="135" width="330" height="90" class="service"/>
+  <text x="830" y="172" class="txt">SVG Renderer</text>
+  <text x="830" y="198" class="sub">Display and export diagrams</text>
+
+  <rect x="30" y="280" width="1140" height="210" class="layer"/>
+  <text x="50" y="318" class="txt">Application Layer (FastAPI)</text>
+  <rect x="70" y="340" width="250" height="120" class="service"/>
+  <text x="122" y="380" class="txt">/parse</text>
+  <text x="93" y="408" class="sub">Problem understanding</text>
+
+  <rect x="350" y="340" width="250" height="120" class="service"/>
+  <text x="378" y="380" class="txt">/parse-image</text>
+  <text x="380" y="408" class="sub">OCR + interpretation</text>
+
+  <rect x="630" y="340" width="250" height="120" class="service"/>
+  <text x="688" y="380" class="txt">/diagram</text>
+  <text x="660" y="408" class="sub">FBD SVG generation</text>
+
+  <rect x="910" y="340" width="230" height="120" class="service"/>
+  <text x="940" y="380" class="txt">Validator</text>
+  <text x="930" y="408" class="sub">Pydantic + checks</text>
+
+  <rect x="30" y="520" width="1140" height="150" class="layer"/>
+  <text x="50" y="555" class="txt">AI &amp; Infrastructure Layer</text>
+  <rect x="80" y="575" width="360" height="70" class="ext"/>
+  <text x="130" y="618" class="txt">Gemini 2.5 Flash / Vision</text>
+
+  <rect x="490" y="575" width="280" height="70" class="ext"/>
+  <text x="530" y="618" class="txt">Rate Limit + Retry</text>
+
+  <rect x="810" y="575" width="320" height="70" class="ext"/>
+  <text x="875" y="618" class="txt">AMD CPU/GPU Host</text>
+
+  <line x1="220" y1="230" x2="220" y2="335" class="arrow"/>
+  <line x1="530" y1="230" x2="530" y2="335" class="arrow"/>
+  <line x1="955" y1="230" x2="955" y2="335" class="arrow"/>
+  <line x1="220" y1="460" x2="220" y2="570" class="arrow"/>
+  <line x1="530" y1="460" x2="530" y2="570" class="arrow"/>
+  <line x1="955" y1="460" x2="955" y2="570" class="arrow"/>
+</svg>
