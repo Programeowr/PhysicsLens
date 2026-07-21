@@ -1,0 +1,5 @@
+spacy>=3.7
+sympy>=1.12
+fastapi>=0.110
+uvicorn>=0.27
+pytest>=8.0
