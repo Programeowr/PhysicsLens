@@ -1,6 +1,6 @@
 # PhysicsLens 🔭
 
-> AI-powered Free Body Diagram generator for physics students. Paste a Newton's Laws problem (or upload a photo) and get an instant, color-coded FBD.
+> AI-powered Free Body Diagram generator for physics students. Paste a Newton's Laws problem (or upload a photo) and get an instant, color-coded Free body diagram.
 
 **Built for the AMD Slingshot Hackathon**
 
