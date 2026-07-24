@@ -6,7 +6,7 @@ from math import cos, degrees, pi, sin
 
 from .schema import ForceSolution, ForceVector, ParseResult
 
-G = 9.8
+G = 10.0  # m/s^2
 
 
 def _mass(result: ParseResult, index: int = 0) -> float:

@@ -25,17 +25,35 @@ def _force_scale(solution: ForceSolution) -> float:
     return 140.0 / max((force.magnitude_n for force in solution.forces), default=1.0)
 
 
-def _force_svg(vector: ForceVector, anchor: tuple[float, float], scale: float) -> str:
+def _force_svg(vector: ForceVector, anchor: tuple[float, float], scale: float, offset: float = 0.0) -> str:
+    """Render one vector, offsetting parallel vectors perpendicular to their direction."""
     radians = vector.direction_deg * pi / 180
     length = max(36.0, vector.magnitude_n * scale)
-    x2, y2 = anchor[0] + length * cos(radians), anchor[1] - length * sin(radians)
+    # Screen direction is (cos(theta), -sin(theta)); its perpendicular is (sin(theta), cos(theta)).
+    x1, y1 = anchor[0] + offset * sin(radians), anchor[1] + offset * cos(radians)
+    x2, y2 = x1 + length * cos(radians), y1 - length * sin(radians)
     color = COLORS.get(vector.name, "#333")
     label = escape(vector.name.replace("_", " ").title())
+    connector = "" if offset == 0 else f'<line x1="{anchor[0]:.1f}" y1="{anchor[1]:.1f}" x2="{x1:.1f}" y2="{y1:.1f}" stroke="{color}" stroke-width="1.5" stroke-dasharray="3 3"/>'
     return (
-        f'<line x1="{anchor[0]:.1f}" y1="{anchor[1]:.1f}" x2="{x2:.1f}" y2="{y2:.1f}" '
+        connector
+        + f'<line x1="{x1:.1f}" y1="{y1:.1f}" x2="{x2:.1f}" y2="{y2:.1f}" '
         f'stroke="{color}" stroke-width="3" marker-end="url(#arrow)"/>'
         f'<text x="{x2:.1f}" y="{y2 - 8:.1f}" text-anchor="middle" fill="{color}" font-family="Arial" font-size="14">{label} = {vector.magnitude_n:.1f} N</text>'
     )
+
+
+def _force_svg_group(forces: list[ForceVector], anchor: tuple[float, float], scale: float) -> list[str]:
+    """Space forces with the same direction so arrows and labels stay legible."""
+    groups: dict[float, list[ForceVector]] = {}
+    for force in forces:
+        groups.setdefault(round(force.direction_deg % 360, 1), []).append(force)
+    rendered: list[str] = []
+    for group in groups.values():
+        middle = (len(group) - 1) / 2
+        for index, force in enumerate(group):
+            rendered.append(_force_svg(force, anchor, scale, (index - middle) * 28))
+    return rendered
 
 
 def _save(parts: list[str], output_path: str) -> str:
@@ -61,7 +79,7 @@ def render_inclined_plane(result: ParseResult, solution: ForceSolution, output_p
         f'<rect x="{cx-44:.1f}" y="{cy-28:.1f}" width="88" height="56" rx="3" fill="#e6e6e6" stroke="#222" stroke-width="2" transform="rotate({-angle:.1f} {cx:.1f} {cy:.1f})"/>',
         f'<text x="{cx:.1f}" y="{cy+5:.1f}" text-anchor="middle" font-family="Arial" font-size="15">{result.objects[0].mass_kg:g} kg</text>',
     ]
-    parts.extend(_force_svg(force, (cx, cy), _force_scale(solution)) for force in solution.forces)
+    parts.extend(_force_svg_group(solution.forces, (cx, cy), _force_scale(solution)))
     return _save(parts, output_path)
 
 
@@ -69,7 +87,7 @@ def render_horizontal_friction(result: ParseResult, solution: ForceSolution, out
     anchor = (450.0, 365.0)
     parts = _svg_start("Horizontal Free-Body Diagram")
     parts += ['<line x1="100" y1="420" x2="800" y2="420" stroke="#555" stroke-width="7"/>', '<rect x="405" y="335" width="90" height="60" rx="3" fill="#e6e6e6" stroke="#222" stroke-width="2"/>', f'<text x="450" y="370" text-anchor="middle" font-family="Arial" font-size="15">{result.objects[0].mass_kg:g} kg</text>']
-    parts.extend(_force_svg(force, anchor, _force_scale(solution)) for force in solution.forces)
+    parts.extend(_force_svg_group(solution.forces, anchor, _force_scale(solution)))
     return _save(parts, output_path)
 
 
@@ -80,7 +98,8 @@ def render_atwood_pulley(result: ParseResult, solution: ForceSolution, output_pa
     for obj in result.objects[:2]:
         x, y = anchors[obj.id]
         parts += [f'<rect x="{x-38}" y="{y-28}" width="76" height="56" rx="3" fill="#e6e6e6" stroke="#222" stroke-width="2"/>', f'<text x="{x}" y="{y+5}" text-anchor="middle" font-family="Arial" font-size="14">{obj.mass_kg:g} kg</text>']
-    parts.extend(_force_svg(force, anchors[force.anchor], _force_scale(solution)) for force in solution.forces)
+    for object_id, anchor in anchors.items():
+        parts.extend(_force_svg_group([force for force in solution.forces if force.anchor == object_id], anchor, _force_scale(solution)))
     return _save(parts, output_path)
 
 
@@ -99,9 +118,23 @@ def render_projectile_motion(result: ParseResult, solution: ForceSolution, outpu
         points.append(f"{origin[0] + x * scale:.1f},{origin[1] - y * scale:.1f}")
     anchor = (origin[0] + range_m * scale / 2, origin[1] - height * scale)
     mass_label = f"{result.objects[0].mass_kg:g} kg" if result.objects and result.objects[0].mass_kg is not None else "projectile"
+    launch_length = 115.0
+    launch_end = (origin[0] + launch_length * cos(angle), origin[1] - launch_length * sin(angle))
+    arc_radius = 46.0
+    arc_end = (origin[0] + arc_radius * cos(angle), origin[1] - arc_radius * sin(angle))
+    angle_deg = result.geometry.projectile_angle_deg or 45.0
     parts = _svg_start("Projectile Motion Force Diagram")
-    parts += [f'<line x1="{origin[0]}" y1="{origin[1]}" x2="{origin[0] + range_m*scale:.1f}" y2="{origin[1]}" stroke="#555" stroke-width="4"/>', f'<polyline points="{" ".join(points)}" fill="none" stroke="#555" stroke-width="3"/>', f'<circle cx="{anchor[0]:.1f}" cy="{anchor[1]:.1f}" r="11" fill="#e6e6e6" stroke="#222" stroke-width="2"/>', f'<text x="{anchor[0]:.1f}" y="{anchor[1]-18:.1f}" text-anchor="middle" font-family="Arial" font-size="14">{mass_label}</text>']
-    parts.extend(_force_svg(force, anchor, _force_scale(solution)) for force in solution.forces)
+    parts += [
+        f'<line x1="{origin[0]}" y1="{origin[1]}" x2="{origin[0] + range_m*scale:.1f}" y2="{origin[1]}" stroke="#555" stroke-width="4"/>',
+        f'<polyline points="{" ".join(points)}" fill="none" stroke="#555" stroke-width="3"/>',
+        f'<line x1="{origin[0]}" y1="{origin[1]}" x2="{launch_end[0]:.1f}" y2="{launch_end[1]:.1f}" stroke="#0b7285" stroke-width="3" marker-end="url(#arrow)"/>',
+        f'<text x="{launch_end[0]+12:.1f}" y="{launch_end[1]-10:.1f}" fill="#0b7285" font-family="Arial" font-size="15">Initial speed v0 = {speed:g} m/s</text>',
+        f'<path d="M {origin[0]+arc_radius} {origin[1]} A {arc_radius} {arc_radius} 0 0 0 {arc_end[0]:.1f} {arc_end[1]:.1f}" fill="none" stroke="#0b7285" stroke-width="2"/>',
+        f'<text x="{origin[0]+arc_radius+16:.1f}" y="{origin[1]-18:.1f}" fill="#0b7285" font-family="Arial" font-size="15">theta = {angle_deg:g}&#176;</text>',
+        f'<circle cx="{anchor[0]:.1f}" cy="{anchor[1]:.1f}" r="11" fill="#e6e6e6" stroke="#222" stroke-width="2"/>',
+        f'<text x="{anchor[0]:.1f}" y="{anchor[1]-18:.1f}" text-anchor="middle" font-family="Arial" font-size="14">{mass_label}</text>',
+    ]
+    parts.extend(_force_svg_group(solution.forces, anchor, _force_scale(solution)))
     return _save(parts, output_path)
 
 
@@ -110,7 +143,7 @@ def render_generic(result: ParseResult, solution: ForceSolution | None, output_p
     label = result.objects[0].label if result.objects and result.objects[0].label else "object"
     parts = _svg_start("Generic Free-Body Diagram") + [f'<rect x="405" y="300" width="90" height="60" rx="3" fill="#e6e6e6" stroke="#222" stroke-width="2"/>', f'<text x="450" y="336" text-anchor="middle" font-family="Arial" font-size="15">{escape(label)}</text>']
     if solution:
-        parts.extend(_force_svg(force, anchor, _force_scale(solution)) for force in solution.forces)
+        parts.extend(_force_svg_group(solution.forces, anchor, _force_scale(solution)))
     return _save(parts, output_path)
 
 

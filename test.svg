@@ -1,0 +1,19 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="900" height="620" viewBox="0 0 900 620">
+  <defs>
+    <marker id="arrow" markerWidth="10" markerHeight="8" refX="9" refY="4" orient="auto">
+      <path d="M0,0 L10,4 L0,8 z" fill="context-stroke"/>
+    </marker>
+  </defs>
+  <rect width="100%" height="100%" fill="white"/>
+  <text x="450" y="38" text-anchor="middle" font-family="Arial" font-size="22" font-weight="bold">Projectile Motion Force Diagram</text>
+  <line x1="130.0" y1="490.0" x2="750.0" y2="490.0" stroke="#555" stroke-width="4"/>
+  <polyline points="130.0,490.0 140.3,472.4 150.7,455.4 161.0,438.9 171.3,423.1 181.7,407.8 192.0,393.1 202.3,379.0 212.7,365.5 223.0,352.6 233.3,340.3 243.7,328.5 254.0,317.3 264.3,306.7 274.7,296.7 285.0,287.3 295.3,278.5 305.7,270.2 316.0,262.6 326.3,255.5 336.7,249.0 347.0,243.1 357.3,237.7 367.7,233.0 378.0,228.8 388.3,225.3 398.7,222.3 409.0,219.9 419.3,218.0 429.7,216.8 440.0,216.2 450.3,216.1 460.7,216.6 471.0,217.7 481.3,219.4 491.7,221.7 502.0,224.5 512.3,228.0 522.7,232.0 533.0,236.6 543.3,241.8 553.7,247.6 564.0,254.0 574.3,260.9 584.7,268.4 595.0,276.6 605.3,285.3 615.7,294.6 626.0,304.4 636.3,314.9 646.7,325.9 657.0,337.6 667.3,349.8 677.7,362.6 688.0,376.0 698.3,389.9 708.7,404.5 719.0,419.6 729.3,435.3 739.7,451.6 750.0,468.5" fill="none" stroke="#555" stroke-width="3"/>
+  <line x1="130.0" y1="490.0" x2="187.5" y2="390.4" stroke="#0b7285" stroke-width="3" marker-end="url(#arrow)"/>
+  <text x="199.5" y="380.4" fill="#0b7285" font-family="Arial" font-size="15">Initial speed v0 = 30 m/s</text>
+  <path d="M 176.0 490.0 A 46.0 46.0 0 0 0 153.0 450.2" fill="none" stroke="#0b7285" stroke-width="2"/>
+  <text x="192.0" y="472.0" fill="#0b7285" font-family="Arial" font-size="15">theta = 60&#176;</text>
+  <circle cx="440.0" cy="221.5" r="11" fill="#e6e6e6" stroke="#222" stroke-width="2"/>
+  <text x="440.0" y="203.5" text-anchor="middle" font-family="Arial" font-size="14">projectile</text>
+  <line x1="440.0" y1="221.5" x2="440.0" y2="361.5" stroke="#d62728" stroke-width="3" marker-end="url(#arrow)"/>
+  <text x="440.0" y="353.5" text-anchor="middle" fill="#d62728" font-family="Arial" font-size="14">Weight = 10.0 N</text>
+</svg>

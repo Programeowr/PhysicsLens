@@ -1,6 +1,6 @@
 # PhysicsLens — Physics Question to Force Diagram
 
-PhysicsLens turns supported natural-language physics questions into deterministic, labeled SVG force diagrams. It is fully rule-based: it uses no LLMs or external APIs at runtime.
+PhysicsLens turns supported natural-language physics questions into labeled SVG force diagrams. Parsing uses the local Ollama `qwen2.5:7b` model; no cloud API is used.
 
 Supported scenarios are inclined planes, horizontal friction, Atwood pulleys, and projectile motion.
 
@@ -8,6 +8,7 @@ Supported scenarios are inclined planes, horizontal friction, Atwood pulleys, an
 
 - Windows PowerShell
 - Python 3.14 (the project was verified with Python 3.14)
+- [Ollama](https://ollama.com/) with `qwen2.5:7b`
 
 ## Install
 
@@ -16,10 +17,11 @@ From the project root, create a virtual environment and install dependencies:
 ```powershell
 py -3.14 -m venv .venv314
 & .\.venv314\Scripts\python.exe -m pip install -r physics_diagram\requirements.txt
-& .\.venv314\Scripts\python.exe -m spacy download en_core_web_sm
+ollama pull qwen2.5:7b
 ```
 
 > You do not need to activate the environment. The commands below invoke its Python executable directly.
+> Ollama must be running before the API receives a request. The parser uses `http://127.0.0.1:11434` and `qwen2.5:7b` by default. Override them with `OLLAMA_BASE_URL` and `OLLAMA_MODEL` environment variables if needed.
 
 ## Start the API
 
