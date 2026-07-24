@@ -2,6 +2,8 @@
 
 PhysicsLens turns supported natural-language physics questions into labeled SVG force diagrams. Parsing uses the local Ollama `qwen2.5:7b` model; no cloud API is used.
 
+The rendering path now builds a `SceneGraph`, applies a dedicated layout pass, and then renders pure SVG from structured scene data. This makes diagram generation more modular, scalable, and easier to extend.
+
 Supported scenarios are inclined planes, horizontal friction, Atwood pulleys, and projectile motion.
 
 ## Requirements
@@ -34,6 +36,11 @@ Open the interactive API documentation at [http://127.0.0.1:8000/docs](http://12
 ## Generate a diagram
 
 The `/solve` endpoint returns JSON, including a Base64-encoded SVG. The `/solve.svg` endpoint returns the SVG image directly.
+
+Under the hood, the pipeline now uses:
+- `scene_graph.build_scene_graph()` to create a generic drawing model,
+- `layout.layout_scene()` to position objects, forces, and annotations,
+- `svg_renderer.render_scene()` to emit the final SVG markup.
 
 In a second PowerShell window, save a diagram file with:
 

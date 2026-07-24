@@ -25,8 +25,14 @@ physics_engine.solve()
 ForceSolution
     │
     ▼
-renderer.render()
-    │
+scene_graph.build_scene_graph()
+    │  Abstract scene description of objects, surfaces, forces, and annotations
+    ▼
+layout.layout_scene()
+    │  Responsive positioning and sizing
+    ▼
+svg_renderer.render_scene()
+    │  Pure SVG drawing from the scene graph
     ▼
 SVG file / API response
 ```
@@ -42,7 +48,10 @@ SVG file / API response
 | `parser.py` | Calls local Ollama with a JSON-schema-constrained prompt and converts the result into a `ParseResult`. |
 | `validation.py` | Validation gate. Incomplete parses are returned without reaching a solver. |
 | `physics_engine.py` | Scenario-specific physics calculations and the solver dispatcher. The Atwood solver uses SymPy equations. |
-| `renderer.py` | Dependency-free SVG generation for each supported scenario. It draws surfaces, objects, force arrows, labels, and geometry. |
+| `scene_graph.py` | Builds an abstract `SceneGraph` describing what to draw from `ParseResult` and `ForceSolution`. |
+| `layout.py` | Computes responsive object placement, force anchor/tip positions, and annotations without physics logic. |
+| `svg_renderer.py` | Converts the prepared `SceneGraph` into structured SVG groups and styles. |
+| `renderer.py` | Orchestrates scene graph construction, layout, and SVG rendering for each supported scenario. |
 | `pipeline.py` | Main orchestration function: `solve_and_render(text, output_path)`. |
 | `api.py` | FastAPI interface exposing JSON (`POST /solve`) and direct SVG (`POST /solve.svg`) responses. |
 
@@ -52,7 +61,14 @@ SVG file / API response
 
 The Ollama parser requests JSON constrained by a schema and uses temperature `0` with a fixed seed. The prompt instructs Qwen to normalize units to SI and never infer missing numerical values. `parser.py` then validates that JSON while constructing the typed `ParseResult` used by the rest of the pipeline.
 
-`ForceSolution` is created only after a complete parse. It contains `ForceVector` values with a numeric magnitude, direction in screen coordinates, and the object each force acts on. Renderer code never calculates physics values; it only displays the solution.
+`ForceSolution` is created only after a complete parse. It contains `ForceVector` values with a numeric magnitude, direction in screen coordinates, and the object each force acts on.
+
+The rendering pipeline now separates responsibilities:
+- `scene_graph.py` describes what to draw.
+- `layout.py` computes positions, orientations, and label placement.
+- `svg_renderer.py` draws the final SVG from the prepared graph.
+
+Renderer code never calculates physics values; it only displays the solution.
 
 ## Supported scenarios
 

@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from typing import Optional
 
 
@@ -63,3 +63,68 @@ class ForceSolution:
     scenario_type: str
     forces: list[ForceVector]
     derived_values: dict[str, float | str | None]
+
+
+@dataclass
+class SceneCanvas:
+    width: int
+    height: int
+    margin: int = 56
+
+
+@dataclass
+class SceneSurface:
+    type: str
+    angle: Optional[float] = None
+    start: tuple[float, float] | None = None
+    end: tuple[float, float] | None = None
+    center: tuple[float, float] | None = None
+    radius: Optional[float] = None
+    points: list[tuple[float, float]] | None = None
+    label: str = ""
+
+
+@dataclass
+class SceneObject:
+    id: str
+    type: str = "block"
+    rotation_deg: float = 0.0
+    position: tuple[float, float] = (0.0, 0.0)
+    width: float = 88.0
+    height: float = 56.0
+    radius: float = 16.0
+    label: str = ""
+    mass_kg: Optional[float] = None
+
+
+@dataclass
+class SceneForce:
+    label: str
+    origin: str
+    magnitude_n: float
+    direction_deg: float
+    anchor_position: tuple[float, float] | None = None
+    tip_position: tuple[float, float] | None = None
+    label_position: tuple[float, float] | None = None
+    offset: float = 0.0
+    color: str = ""
+
+
+@dataclass
+class SceneAnnotation:
+    type: str
+    value: float
+    origin: Optional[str] = None
+    position: tuple[float, float] | None = None
+    radius: Optional[float] = None
+    label_position: tuple[float, float] | None = None
+
+
+@dataclass
+class SceneGraph:
+    canvas: SceneCanvas
+    surfaces: list[SceneSurface] = field(default_factory=list)
+    objects: list[SceneObject] = field(default_factory=list)
+    forces: list[SceneForce] = field(default_factory=list)
+    annotations: list[SceneAnnotation] = field(default_factory=list)
+    title: str = "PhysicsLens Diagram"
