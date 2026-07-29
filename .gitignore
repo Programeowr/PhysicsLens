@@ -1,3 +1,5 @@
+node_modules/
+dist/
 .venv/
 .venv314/
 .tmp/
@@ -10,6 +12,6 @@ __pycache__/
 coverage.xml
 htmlcov/
 build/
-dist/
 *.egg-info/
 diagram.svg
+

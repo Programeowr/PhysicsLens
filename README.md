@@ -62,7 +62,27 @@ python3 -m venv .venv
 
 The interactive API docs are at **[http://127.0.0.1:8000/docs](http://127.0.0.1:8000/docs)**.
 
-### 3. Generate a diagram
+### 3. Run the frontend UI (optional)
+
+The repository includes a brutalist React frontend in `frontend/` with:
+
+- a home page
+- scenario cards for all implemented physics solvers
+- a Get Started section with a text input and live diagram output
+
+```powershell
+cd frontend
+npm install
+npm run dev
+```
+
+By default, the frontend calls `http://127.0.0.1:8000`. To target a different API host, create `frontend/.env` with:
+
+```text
+VITE_API_BASE=http://127.0.0.1:8000
+```
+
+### 4. Generate a diagram
 
 **PowerShell:**
 
@@ -119,6 +139,7 @@ Returns a JSON response with parsed results and a Base64-encoded SVG.
 |---|---|---|
 | `status` | `string` | `"ok"`, `"needs_clarification"`, or `"unsupported_scenario"` |
 | `missing_fields` | `string[]` | Slots the parser could not fill (e.g. `["mass_kg"]`) |
+| `force_solution` | `object` | Solution object containing `scenario_type`, `forces`, and `derived_values` |
 | `diagram_svg_base64` | `string` | Base64-encoded SVG (present only when `status` is `"ok"`) |
 
 ### `POST /solve.svg`
