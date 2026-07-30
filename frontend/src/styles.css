@@ -2,17 +2,19 @@
 
 /* ───── Design tokens ───── */
 :root {
-  --paper: #f4f7ff;
-  --ink: #14213d;
-  --accent: #5b7cff;
-  --accent-glow: rgba(91, 124, 255, 0.18);
-  --line: #24324f;
-  --panel: #fcfdff;
-  --muted: #c8d3ee;
+  /* Palette: Middle Red / Dolphin Gray / Fern Green / Dark Gunmetal */
+  --paper: #1e3035;          /* Dark Gunmetal, slightly lighter for body bg */
+  --ink: #f0ece6;            /* Off-white for text on dark backgrounds */
+  --accent: #E28A75;         /* Middle Red */
+  --accent-glow: rgba(226, 138, 117, 0.22);
+  --line: #506F50;           /* Fern Green for borders */
+  --panel: #182A2F;          /* Dark Gunmetal for card surfaces */
+  --muted: #809E86;          /* Dolphin Gray */
+  --muted-dim: rgba(128, 158, 134, 0.25);
   --radius-card: 2px;
-  --shadow-brutal: 8px 8px 0 var(--ink);
-  --shadow-brutal-sm: 4px 4px 0 var(--ink);
-  --shadow-brutal-hover: 10px 10px 0 var(--ink);
+  --shadow-brutal: 8px 8px 0 #0d1e22;
+  --shadow-brutal-sm: 4px 4px 0 #0d1e22;
+  --shadow-brutal-hover: 10px 10px 0 #0d1e22;
   --transition-base: 180ms ease-out;
 }
 
@@ -37,8 +39,8 @@ body,
 
 body {
   background:
-    radial-gradient(circle at 15% 20%, #dce7ff 0%, transparent 40%),
-    radial-gradient(circle at 90% 10%, #e8d7ff 0%, transparent 32%),
+    radial-gradient(circle at 15% 20%, rgba(80, 111, 80, 0.18) 0%, transparent 40%),
+    radial-gradient(circle at 90% 10%, rgba(226, 138, 117, 0.10) 0%, transparent 32%),
     var(--paper);
   color: var(--ink);
   font-family: "Space Grotesk", sans-serif;
@@ -60,10 +62,10 @@ body {
   position: fixed;
   inset: 0;
   pointer-events: none;
-  opacity: 0.12;
+  opacity: 0.08;
   background-image:
-    linear-gradient(transparent 94%, rgba(0, 0, 0, 0.08) 95%),
-    linear-gradient(90deg, transparent 94%, rgba(0, 0, 0, 0.08) 95%);
+    linear-gradient(transparent 94%, rgba(0, 0, 0, 0.12) 95%),
+    linear-gradient(90deg, transparent 94%, rgba(0, 0, 0, 0.12) 95%);
   background-size: 14px 14px;
   z-index: 0;
 }
@@ -119,14 +121,14 @@ body {
 .hero-core {
   position: absolute;
   inset: 0;
-  border: 2px solid rgba(91, 124, 255, 0.24);
+  border: 2px solid rgba(226, 138, 117, 0.28);
   border-radius: 50%;
   animation: drift 10s linear infinite;
 }
 
 .hero-orbit-b {
   inset: 18px;
-  border-color: rgba(91, 124, 255, 0.35);
+  border-color: rgba(128, 158, 134, 0.35);
   animation-duration: 14s;
   animation-direction: reverse;
 }
@@ -134,7 +136,7 @@ body {
 .hero-core {
   inset: 56px;
   border: 0;
-  background: radial-gradient(circle, var(--accent) 0%, rgba(91, 124, 255, 0.15) 70%, transparent 100%);
+  background: radial-gradient(circle, var(--accent) 0%, rgba(226, 138, 117, 0.15) 70%, transparent 100%);
   animation-duration: 7s;
 }
 
@@ -143,7 +145,7 @@ body {
   font-size: 12px;
   letter-spacing: 0.12em;
   text-transform: uppercase;
-  color: #666;
+  color: var(--muted);
   margin-bottom: 16px;
   animation: fadeUp 0.5s cubic-bezier(0.22, 1, 0.36, 1) 0.1s both;
 }
@@ -155,6 +157,7 @@ h1 {
   letter-spacing: -0.02em;
   margin-bottom: 20px;
   animation: fadeUp 0.5s cubic-bezier(0.22, 1, 0.36, 1) 0.2s both;
+  color: var(--ink);
 }
 
 h1 span {
@@ -166,7 +169,7 @@ h1 span {
   max-width: 52ch;
   font-size: 1.05rem;
   line-height: 1.6;
-  color: #444;
+  color: var(--muted);
   animation: fadeUp 0.5s cubic-bezier(0.22, 1, 0.36, 1) 0.3s both;
 }
 
@@ -181,15 +184,15 @@ h1 span {
 .hero-pill {
   display: inline-flex;
   align-items: center;
-  border: 1px solid rgba(20, 33, 61, 0.12);
+  border: 1px solid rgba(128, 158, 134, 0.3);
   border-radius: 999px;
-  background: #eef3ff;
+  background: rgba(80, 111, 80, 0.18);
   color: var(--ink);
   font-family: "IBM Plex Mono", monospace;
   font-size: 0.76rem;
   letter-spacing: 0.04em;
   padding: 7px 11px;
-  box-shadow: 2px 2px 0 rgba(20, 33, 61, 0.08);
+  box-shadow: 2px 2px 0 rgba(13, 30, 34, 0.25);
   transition:
     transform var(--transition-base),
     box-shadow var(--transition-base),
@@ -198,8 +201,8 @@ h1 span {
 
 .hero-pill:hover {
   transform: translate(-2px, -2px);
-  background: #e3ebff;
-  box-shadow: 4px 4px 0 rgba(20, 33, 61, 0.1);
+  background: rgba(80, 111, 80, 0.32);
+  box-shadow: 4px 4px 0 rgba(13, 30, 34, 0.3);
 }
 
 .hero-actions {
@@ -214,7 +217,7 @@ h1 span {
 .start-btn,
 .ghost-link,
 .reactive-btn {
-  border: 2px solid var(--line);
+  border: 2px solid #0d1e22;
   background: var(--accent);
   color: #fff;
   font-family: "Space Grotesk", sans-serif;
@@ -258,16 +261,16 @@ h1 span {
 .ghost-link:active,
 .reactive-btn:active {
   transform: translate(1px, 1px);
-  box-shadow: 2px 2px 0 var(--ink);
+  box-shadow: 2px 2px 0 #0d1e22;
 }
 
 .ghost-link {
-  background: var(--ink);
+  background: var(--line);
 }
 
 .start-btn .gooey-label,
 .reactive-btn .gooey-label {
-  color: inherit;
+  color: #fff;
 }
 
 /* ═══════════════════════════════════════════
@@ -307,13 +310,14 @@ main {
   margin: 0;
   font-size: clamp(1.5rem, 5vw, 2.2rem);
   letter-spacing: -0.01em;
+  color: var(--ink);
 }
 
 .section-title p {
   margin: 0;
   font-family: "IBM Plex Mono", monospace;
   font-size: 0.82rem;
-  color: #777;
+  color: var(--muted);
 }
 
 .scenario-grid {
@@ -325,32 +329,31 @@ main {
 .scenario-card {
   border: 2px solid var(--line);
   padding: 14px;
-  background: var(--panel);
+  background: rgba(80, 111, 80, 0.08);
   transition:
     transform var(--transition-base),
     box-shadow var(--transition-base),
     border-color var(--transition-base);
   cursor: default;
   animation: cardIn 0.45s cubic-bezier(0.22, 1, 0.36, 1) both;
-  /* stagger is applied via inline style */
 }
 
 .scenario-card:hover {
   transform: translateY(-5px);
-  box-shadow: 6px 6px 0 var(--accent-glow), 0 8px 24px rgba(0, 0, 0, 0.06);
+  box-shadow: 6px 6px 0 var(--accent-glow), 0 8px 24px rgba(0, 0, 0, 0.25);
   border-color: var(--accent);
 }
 
 .scenario-art {
   border: 1px dashed var(--muted);
   margin-bottom: 10px;
-  background: #fff8ef;
+  background: rgba(24, 42, 47, 0.6);
   transition: background var(--transition-base);
   overflow: hidden;
 }
 
 .scenario-card:hover .scenario-art {
-  background: #fff0df;
+  background: rgba(226, 138, 117, 0.07);
 }
 
 .scenario-art svg {
@@ -361,17 +364,17 @@ main {
 
 /* SVG fills */
 .ink-fill {
-  fill: var(--ink);
+  fill: var(--muted);
 }
 
 .paper-fill {
-  fill: #fff;
-  stroke: var(--ink);
+  fill: rgba(24, 42, 47, 0.8);
+  stroke: var(--muted);
   stroke-width: 2;
 }
 
 .ink-stroke {
-  stroke: var(--ink);
+  stroke: var(--muted);
   stroke-width: 2;
 }
 
@@ -384,6 +387,7 @@ main {
   margin: 0;
   font-size: 1.1rem;
   font-weight: 700;
+  color: var(--ink);
 }
 
 .scenario-card .tag {
@@ -391,17 +395,18 @@ main {
   font-family: "IBM Plex Mono", monospace;
   font-size: 0.75rem;
   margin-top: 6px;
-  background: #e6eeff;
+  background: rgba(80, 111, 80, 0.25);
+  color: var(--muted);
   padding: 3px 8px;
   letter-spacing: 0.03em;
-  border: 1px solid rgba(20, 33, 61, 0.08);
+  border: 1px solid rgba(128, 158, 134, 0.3);
 }
 
 .scenario-card p {
   margin: 8px 0 0;
   font-size: 0.88rem;
   line-height: 1.45;
-  color: #555;
+  color: var(--muted);
 }
 
 /* ═══════════════════════════════════════════
@@ -447,7 +452,7 @@ main {
   font-size: 0.82rem;
   letter-spacing: 0.08em;
   text-transform: uppercase;
-  color: var(--ink);
+  color: var(--muted);
   text-decoration: none;
   cursor: pointer;
   position: relative;
@@ -463,7 +468,7 @@ main {
   bottom: 0;
   width: 100%;
   height: 1px;
-  background: var(--ink);
+  background: var(--muted);
   transform: scaleX(1);
   transform-origin: left;
   transition: transform 0.3s ease;
@@ -511,7 +516,7 @@ main {
 .lab-output {
   border: 2px solid var(--line);
   padding: 16px;
-  background: #fff;
+  background: rgba(80, 111, 80, 0.08);
 }
 
 .lab-input label {
@@ -521,14 +526,14 @@ main {
   font-size: 0.82rem;
   letter-spacing: 0.04em;
   text-transform: uppercase;
-  color: #555;
+  color: var(--muted);
 }
 
 textarea {
   width: 100%;
   min-height: 190px;
   resize: vertical;
-  border: 2px solid var(--muted);
+  border: 2px solid rgba(128, 158, 134, 0.4);
   padding: 14px;
   font-family: "IBM Plex Mono", monospace;
   font-size: 0.92rem;
@@ -561,15 +566,15 @@ textarea:focus {
 }
 
 .status-idle {
-  color: #888;
+  color: var(--muted);
 }
 
 .status-ready {
-  color: #0f6731;
+  color: #7ecb94;
 }
 
 .status-error {
-  color: #9a240f;
+  color: #e28a75;
 }
 
 .status-loading {
@@ -592,11 +597,11 @@ textarea:focus {
 }
 
 .empty-state {
-  border: 2px dashed var(--muted);
+  border: 2px dashed rgba(128, 158, 134, 0.4);
   display: grid;
   place-items: center;
   font-family: "IBM Plex Mono", monospace;
-  color: #888;
+  color: var(--muted);
   min-height: 240px;
   font-size: 0.88rem;
   text-align: center;
@@ -614,8 +619,8 @@ textarea:focus {
     -45deg,
     transparent,
     transparent 10px,
-    rgba(0, 0, 0, 0.015) 10px,
-    rgba(0, 0, 0, 0.015) 20px
+    rgba(128, 158, 134, 0.03) 10px,
+    rgba(128, 158, 134, 0.03) 20px
   );
 }
 
@@ -630,13 +635,14 @@ textarea:focus {
   gap: 16px;
   font-family: "IBM Plex Mono", monospace;
   font-size: 0.85rem;
-  border-bottom: 1px dashed var(--muted);
+  border-bottom: 1px dashed rgba(128, 158, 134, 0.3);
   padding: 6px 0;
   transition: background 0.15s ease;
+  color: var(--ink);
 }
 
 .derived-row:hover {
-  background: rgba(255, 92, 42, 0.04);
+  background: rgba(226, 138, 117, 0.06);
 }
 
 /* ═══════════════════════════════════════════
@@ -695,7 +701,6 @@ textarea:focus {
     padding: 20px;
   }
 
-
   .hero-motion {
     right: 16px;
     top: 16px;
@@ -726,7 +731,7 @@ textarea:focus {
   .scenario-wrap,
   .lab-wrap {
     padding: 16px;
-    box-shadow: 5px 5px 0 var(--ink);
+    box-shadow: 5px 5px 0 #0d1e22;
   }
 
   .hero {

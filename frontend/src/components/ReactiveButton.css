@@ -8,6 +8,7 @@
   border-radius: inherit;
   pointer-events: none;
   z-index: 0;
+  background: transparent;
 }
 
 .gooey-btn .gooey-surface::before {
@@ -16,18 +17,24 @@
   inset: -32px;
   background: var(--gooey-glow, rgba(255, 255, 255, 0.2));
   opacity: 0;
-  filter: blur(14px) contrast(110);
+  filter: blur(14px);
   transition: opacity 180ms ease-out;
 }
 
 .gooey-btn .gooey-surface::after {
+  display: none;
+}
+
+.gooey-btn-subtle .gooey-surface::after {
+  display: block;
   content: "";
   position: absolute;
   inset: 0;
   border-radius: inherit;
-  background: var(--gooey-fill, rgba(255, 255, 255, 0.92));
+  background: var(--gooey-fill, rgba(128, 158, 134, 0.18));
   transform: scale(0.65);
   opacity: 0;
+  z-index: 0;
 }
 
 .gooey-btn.is-active .gooey-surface::before {
@@ -72,13 +79,13 @@
 }
 
 .gooey-btn-primary {
-  --gooey-fill: rgba(255, 255, 255, 0.94);
-  --gooey-glow: rgba(174, 197, 255, 0.42);
+  --gooey-fill: rgba(255, 255, 255, 0.12);
+  --gooey-glow: rgba(226, 138, 117, 0.35);
 }
 
 .gooey-btn-subtle {
-  --gooey-fill: rgba(91, 124, 255, 0.18);
-  --gooey-glow: rgba(91, 124, 255, 0.22);
+  --gooey-fill: rgba(128, 158, 134, 0.18);
+  --gooey-glow: rgba(128, 158, 134, 0.22);
 }
 
 .gooey-btn-subtle.is-active {

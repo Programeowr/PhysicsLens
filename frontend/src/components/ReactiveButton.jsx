@@ -5,7 +5,7 @@ function clamp(value, min, max) {
   return Math.max(min, Math.min(max, value));
 }
 
-const DEFAULT_COLORS = ["#ffffff", "#dce7ff", "#c7d5ff", "#a7bcff", "#5b7cff"];
+const DEFAULT_COLORS = ["#ffffff", "#E28A75", "#c47560", "#809E86", "#506F50"];
 
 function randomNoise(amount = 1) {
   return amount / 2 - Math.random() * amount;
