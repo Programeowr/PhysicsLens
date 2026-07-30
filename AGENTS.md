@@ -1,9 +1,9 @@
 # AGENTS.md
 
-This repository contains a Python physics solver plus a React frontend.
+This repository contains a Python physics solver with a layered SVG rendering pipeline plus a React frontend.
 
 ## Layout
-- `physics_diagram/` contains the backend solver, API, parser, and renderer.
+- `physics_diagram/` contains the backend solver, API, parser, shared schema, and rendering pipeline (`scene_graph.py`, `layout.py`, `svg_renderer.py`, `renderer.py`, `pipeline.py`).
 - `frontend/` contains the React UI.
 
 ## Frontend rules
@@ -14,12 +14,14 @@ This repository contains a Python physics solver plus a React frontend.
 
 ## Backend rules
 - Start the API with `py -m uvicorn physics_diagram.api:app --host 127.0.0.1 --port 8000`.
+- Validate backend changes with focused pytest runs under `physics_diagram/tests/`.
 - The frontend expects the API at `http://127.0.0.1:8000` unless `VITE_API_BASE` overrides it.
 
 ## Editing rules
 - Prefer minimal, focused changes.
 - Do not revert user changes unless explicitly asked.
 - Preserve the existing brutalist visual direction for the frontend.
+- Keep backend renderer changes aligned with the current layered pipeline and update `todo.md` and `Architecture.md` when that architecture changes.
 
 ## Shared Agent Memory
 - Treat `todo.md` as the active working roadmap for this repo.
