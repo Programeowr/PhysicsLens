@@ -30,7 +30,7 @@ export default function LabPanel() {
     }
 
     setStatus("loading");
-    setMessage("Crunching vectors…");
+    setMessage("Crunching vectors...");
 
     try {
       const response = await fetch(`${API_BASE}/solve`, {
@@ -65,7 +65,7 @@ export default function LabPanel() {
     <section className="lab-wrap" id="start" aria-label="Interactive solve panel">
       <div className="section-title">
         <h2>Diagram Workspace</h2>
-        <p>Paste one question → get a deterministic force diagram.</p>
+        <p>{"Paste one question -> get a deterministic force diagram."}</p>
       </div>
       <div className="lab-grid">
         <div className="lab-input">
@@ -75,14 +75,12 @@ export default function LabPanel() {
             value={prompt}
             onChange={(event) => setPrompt(event.target.value)}
             spellCheck={false}
-            placeholder="Describe a physics problem involving forces, inclines, pulleys, or projectiles…"
+            placeholder="Describe a physics problem involving forces, inclines, pulleys, or projectiles..."
           />
           <div className="lab-actions">
-            <div data-magnetic>
-              <ReactiveButton onClick={solve} disabled={status === "loading"}>
-                {status === "loading" ? "Solving…" : "Generate Diagram"}
-              </ReactiveButton>
-            </div>
+            <ReactiveButton onClick={solve} disabled={status === "loading"} variant="primary">
+              {status === "loading" ? "Solving..." : "Generate Diagram"}
+            </ReactiveButton>
             <p className={`status status-${status}`}>{message}</p>
           </div>
         </div>

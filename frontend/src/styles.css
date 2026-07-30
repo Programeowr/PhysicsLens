@@ -106,6 +106,38 @@ body {
   background: var(--accent);
 }
 
+.hero-motion {
+  position: absolute;
+  top: 22px;
+  right: 22px;
+  width: 140px;
+  height: 140px;
+  pointer-events: none;
+}
+
+.hero-orbit,
+.hero-core {
+  position: absolute;
+  inset: 0;
+  border: 2px solid rgba(91, 124, 255, 0.24);
+  border-radius: 50%;
+  animation: drift 10s linear infinite;
+}
+
+.hero-orbit-b {
+  inset: 18px;
+  border-color: rgba(91, 124, 255, 0.35);
+  animation-duration: 14s;
+  animation-direction: reverse;
+}
+
+.hero-core {
+  inset: 56px;
+  border: 0;
+  background: radial-gradient(circle, var(--accent) 0%, rgba(91, 124, 255, 0.15) 70%, transparent 100%);
+  animation-duration: 7s;
+}
+
 .kicker {
   font-family: "IBM Plex Mono", monospace;
   font-size: 12px;
@@ -136,6 +168,38 @@ h1 span {
   line-height: 1.6;
   color: #444;
   animation: fadeUp 0.5s cubic-bezier(0.22, 1, 0.36, 1) 0.3s both;
+}
+
+.hero-pills {
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+  margin-top: 22px;
+  animation: fadeUp 0.5s cubic-bezier(0.22, 1, 0.36, 1) 0.35s both;
+}
+
+.hero-pill {
+  display: inline-flex;
+  align-items: center;
+  border: 1px solid rgba(20, 33, 61, 0.12);
+  border-radius: 999px;
+  background: #eef3ff;
+  color: var(--ink);
+  font-family: "IBM Plex Mono", monospace;
+  font-size: 0.76rem;
+  letter-spacing: 0.04em;
+  padding: 7px 11px;
+  box-shadow: 2px 2px 0 rgba(20, 33, 61, 0.08);
+  transition:
+    transform var(--transition-base),
+    box-shadow var(--transition-base),
+    background var(--transition-base);
+}
+
+.hero-pill:hover {
+  transform: translate(-2px, -2px);
+  background: #e3ebff;
+  box-shadow: 4px 4px 0 rgba(20, 33, 61, 0.1);
 }
 
 .hero-actions {
@@ -175,6 +239,7 @@ h1 span {
   background: linear-gradient(120deg, transparent 40%, rgba(255, 255, 255, 0.15) 50%, transparent 60%);
   transform: translateX(-100%);
   transition: transform 0.4s ease;
+  z-index: 1;
 }
 
 .start-btn:hover::after,
@@ -198,6 +263,11 @@ h1 span {
 
 .ghost-link {
   background: var(--ink);
+}
+
+.start-btn .gooey-label,
+.reactive-btn .gooey-label {
+  color: inherit;
 }
 
 /* ═══════════════════════════════════════════
@@ -382,6 +452,8 @@ main {
   cursor: pointer;
   position: relative;
   transition: color var(--transition-base);
+  box-shadow: none;
+  overflow: visible;
 }
 
 .text-nav::after {
@@ -395,6 +467,7 @@ main {
   transform: scaleX(1);
   transform-origin: left;
   transition: transform 0.3s ease;
+  z-index: 1;
 }
 
 .text-nav:hover {
@@ -405,6 +478,16 @@ main {
   background: var(--accent);
   transform: scaleX(0.6);
   transform-origin: left;
+}
+
+.text-nav.gooey-btn {
+  display: inline-flex;
+  align-items: center;
+}
+
+.text-nav .gooey-surface {
+  inset: -2px -10px;
+  border-radius: 999px;
 }
 
 /* ═══════════════════════════════════════════
@@ -581,6 +664,18 @@ textarea:focus {
   }
 }
 
+@keyframes drift {
+  from {
+    transform: rotate(0deg) scale(1);
+  }
+  50% {
+    transform: rotate(180deg) scale(1.02);
+  }
+  to {
+    transform: rotate(360deg) scale(1);
+  }
+}
+
 @keyframes pulse {
   0%, 100% { opacity: 1; }
   50% { opacity: 0.5; }
@@ -600,6 +695,13 @@ textarea:focus {
     padding: 20px;
   }
 
+
+  .hero-motion {
+    right: 16px;
+    top: 16px;
+    width: 112px;
+    height: 112px;
+  }
   .hero,
   .page-head {
     padding: 28px 24px;
@@ -625,6 +727,17 @@ textarea:focus {
   .lab-wrap {
     padding: 16px;
     box-shadow: 5px 5px 0 var(--ink);
+  }
+
+  .hero {
+    padding-top: 88px;
+  }
+
+  .hero-motion {
+    top: 14px;
+    right: 12px;
+    width: 84px;
+    height: 84px;
   }
 
   .scenario-grid {

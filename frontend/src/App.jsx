@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import LabPanel from "./components/LabPanel";
+import ReactiveButton from "./components/ReactiveButton";
 import ScenarioGrid from "./components/ScenarioGrid";
 import { MagneticCursor } from "./components/ui/magnetic-cursor";
 
@@ -33,6 +34,11 @@ export default function App() {
         {route === "home" ? (
           <div className="page-enter" key={transitionKey}>
             <header className="hero" id="home">
+              <div className="hero-motion" aria-hidden="true">
+                <span className="hero-orbit hero-orbit-a" />
+                <span className="hero-orbit hero-orbit-b" />
+                <span className="hero-core" />
+              </div>
               <p className="kicker">PhysicsLens / deterministic diagrams</p>
               <h1>
                 PhysicsLens
@@ -43,15 +49,15 @@ export default function App() {
                 Explore supported scenarios below. When you're ready, move into
                 the workspace to input your problem and generate precise force diagrams.
               </p>
+              <div className="hero-pills" aria-label="Project highlights">
+                <span data-magnetic className="hero-pill">Deterministic</span>
+                <span data-magnetic className="hero-pill">Local API</span>
+                <span data-magnetic className="hero-pill">SVG output</span>
+              </div>
               <div className="hero-actions">
-                <button
-                  className="start-btn"
-                  type="button"
-                  data-magnetic
-                  onClick={() => navigate("start")}
-                >
+                <ReactiveButton className="start-btn" variant="primary" onClick={() => navigate("start")}>
                   Get Started
-                </button>
+                </ReactiveButton>
               </div>
             </header>
 
@@ -62,9 +68,9 @@ export default function App() {
         ) : (
           <div className="page-enter" key={transitionKey}>
             <header className="page-head page-head-minimal">
-              <button className="text-nav" type="button" data-magnetic onClick={() => navigate("home")}>
-                ← Back to Atlas
-              </button>
+              <ReactiveButton className="text-nav" variant="subtle" onClick={() => navigate("home")}>
+                {"<- Back to Atlas"}
+              </ReactiveButton>
               <h1>
                 <span>Generate Your Diagram</span>
               </h1>

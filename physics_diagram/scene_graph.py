@@ -1,13 +1,15 @@
-"""Build an abstract scene graph from parsed physics and solved forces."""
+"""Build an abstract scene graph from parsed physics facts and solved values."""
 
 from __future__ import annotations
 
-from math import cos, pi, sin
-from typing import Iterable
+from dataclasses import replace
+from typing import Any
 
 from .schema import (
+    DiagramIntent,
     ForceSolution,
     ParseResult,
+    RenderHints,
     SceneAnnotation,
     SceneCanvas,
     SceneForce,
@@ -16,121 +18,84 @@ from .schema import (
     SceneSurface,
 )
 
-FORCE_LABELS = {
-    "weight": "W",
-    "normal_force": "N",
-    "friction": "f",
-    "tension": "T",
-    "applied_force": "F",
-}
 
-FORCE_COLORS = {
-    "weight": "#d62728",
-    "normal_force": "#1f77b4",
-    "friction": "#2ca02c",
-    "tension": "#ff7f0e",
-    "applied_force": "#9467bd",
-}
-
-SCENARIO_TITLES = {
-    "inclined_plane": "Inclined Plane Free-Body Diagram",
-    "horizontal_friction": "Horizontal Free-Body Diagram",
-    "atwood_pulley": "Atwood Pulley Free-Body Diagram",
-    "projectile_motion": "Projectile Motion Force Diagram",
-}
+def _default_intent(result: ParseResult) -> DiagramIntent:
+    title = {
+        "inclined_plane": "Inclined Plane Free-Body Diagram",
+        "horizontal_friction": "Horizontal Free-Body Diagram",
+        "atwood_pulley": "Atwood Pulley Free-Body Diagram",
+        "projectile_motion": "Projectile Motion Force Diagram",
+    }.get(result.scenario_type or "", "Generic Free-Body Diagram")
+    return DiagramIntent(title=title)
 
 
-def build_scene_graph(
-    result: ParseResult,
-    solution: ForceSolution | None,
-    width: int = 900,
-    height: int = 620,
-) -> SceneGraph:
-    canvas = SceneCanvas(width=width, height=height, margin=56)
-    title = SCENARIO_TITLES.get(result.scenario_type or "", "PhysicsLens Diagram")
-    scene = SceneGraph(canvas=canvas, title=title)
+def _default_hints(result: ParseResult) -> RenderHints:
+    return RenderHints(scene_style=result.scenario_type or "generic", object_shape=result.objects[0].shape if result.objects else "box")
 
-    scene.objects = [
-        SceneObject(
-            id=obj.id,
-            type="block",
-            label=obj.label or f"Object {i + 1}",
-            mass_kg=obj.mass_kg,
+
+def _object_label(result: ParseResult, index: int) -> str:
+    if index < len(result.objects) and result.objects[index].label:
+        return result.objects[index].label or ""
+    if index < len(result.objects) and result.objects[index].mass_kg is not None:
+        return f"{result.objects[index].mass_kg:g} kg"
+    return "object"
+
+
+def _scene_object(result: ParseResult, index: int) -> SceneObject:
+    spec = result.objects[index]
+    return SceneObject(id=spec.id, label=_object_label(result, index), shape=spec.shape, mass_kg=spec.mass_kg)
+
+
+def _scene_forces(solution: ForceSolution) -> list[SceneForce]:
+    return [SceneForce(name=force.name, magnitude_n=force.magnitude_n, direction_deg=force.direction_deg, anchor_id=force.anchor) for force in solution.forces]
+
+
+def build_scene_graph(result: ParseResult, solution: ForceSolution | None, render_options: dict[str, Any] | None = None) -> SceneGraph:
+    intent = _default_intent(result)
+    hints = _default_hints(result)
+    if render_options:
+        intent = replace(
+            intent,
+            title=str(render_options.get("title", intent.title)),
+            view_mode=str(render_options.get("view_mode", intent.view_mode)),
+            emphasize_components=bool(render_options.get("emphasize_components", intent.emphasize_components)),
+            show_annotations=bool(render_options.get("show_annotations", intent.show_annotations)),
         )
-        for i, obj in enumerate(result.objects)
-    ]
+        hints = replace(
+            hints,
+            scene_style=str(render_options.get("scene_style", hints.scene_style)),
+            object_shape=str(render_options.get("object_shape", hints.object_shape)),
+            show_surface=bool(render_options.get("show_surface", hints.show_surface)),
+            show_title=bool(render_options.get("show_title", hints.show_title)),
+        )
 
+    objects = [_scene_object(result, index) for index in range(len(result.objects))]
+    surfaces: list[SceneSurface] = []
+    annotations: list[SceneAnnotation] = []
     if result.scenario_type == "inclined_plane":
-        _build_incline(scene, result)
+        surfaces.append(SceneSurface("inclined_plane", angle_deg=float(result.geometry.incline_angle_deg or 0.0)))
     elif result.scenario_type == "horizontal_friction":
-        _build_horizontal(scene, result)
+        surfaces.append(SceneSurface("horizontal_surface"))
     elif result.scenario_type == "atwood_pulley":
-        _build_atwood(scene, result)
+        surfaces.append(SceneSurface("pulley_support"))
     elif result.scenario_type == "projectile_motion":
-        _build_projectile(scene, result, solution)
-    else:
-        _build_generic(scene, result)
+        surfaces.append(SceneSurface("ground"))
 
-    if solution is not None:
-        scene.forces = [
-            SceneForce(
-                label=FORCE_LABELS.get(force.name, force.name.replace("_", " ").title()),
-                origin=force.anchor,
-                magnitude_n=force.magnitude_n,
-                direction_deg=force.direction_deg,
-                color=FORCE_COLORS.get(force.name, "#333333"),
-            )
-            for force in solution.forces
-        ]
+    if result.scenario_type == "projectile_motion" and result.geometry.projectile_angle_deg is not None:
+        annotations.append(SceneAnnotation(text=f"Launch angle: {result.geometry.projectile_angle_deg:g}°", x=120.0, y=70.0, align="start"))
+    if result.scenario_type in {"inclined_plane", "horizontal_friction"} and result.objects and result.objects[0].mass_kg is not None:
+        annotations.append(SceneAnnotation(text=f"Mass: {result.objects[0].mass_kg:g} kg", x=120.0, y=100.0, align="start"))
 
-    return scene
-
-
-def _build_incline(scene: SceneGraph, result: ParseResult) -> None:
-    angle = result.geometry.incline_angle_deg or 0.0
-    scene.surfaces.append(SceneSurface(type="incline", angle=angle))
-    if scene.objects:
-        scene.annotations.append(
-            SceneAnnotation(type="angle", value=angle, origin=scene.objects[0].id)
-        )
-
-
-def _build_horizontal(scene: SceneGraph, result: ParseResult) -> None:
-    scene.surfaces.append(SceneSurface(type="ground"))
-
-
-def _build_atwood(scene: SceneGraph, result: ParseResult) -> None:
-    scene.surfaces.append(SceneSurface(type="pulley"))
-
-
-def _build_projectile(
-    scene: SceneGraph,
-    result: ParseResult,
-    solution: ForceSolution | None,
-) -> None:
-    range_m = float(solution.derived_values.get("range_m") or 1.0) if solution else 1.0
-    height_m = float(solution.derived_values.get("max_height_m") or 1.0) if solution else 1.0
-    angle = result.geometry.projectile_angle_deg or 45.0
-    points: list[tuple[float, float]] = []
-    if range_m > 0 and height_m >= 0:
-        for index in range(61):
-            x = range_m * index / 60
-            y = x * sin(angle * pi / 180) - 9.8 * x * x / (2 * (result.geometry.initial_speed_ms or 1.0) ** 2 * cos(angle * pi / 180) ** 2)
-            points.append((x, max(0.0, y)))
-    scene.surfaces.append(SceneSurface(type="trajectory", points=points))
-    scene.surfaces.append(SceneSurface(type="ground"))
-
-
-def _build_generic(scene: SceneGraph, result: ParseResult) -> None:
-    scene.surfaces.append(SceneSurface(type="ground"))
-
-
-def scene_object_by_id(scene: SceneGraph, object_id: str) -> SceneObject | None:
-    for obj in scene.objects:
-        if obj.id == object_id:
-            return obj
-    return None
-
-
-def has_scene_object(scene: SceneGraph) -> bool:
-    return bool(scene.objects)
+    return SceneGraph(
+        canvas=SceneCanvas(),
+        title=intent.title,
+        scenario_type=result.scenario_type,
+        intent=intent,
+        hints=hints,
+        objects=objects,
+        surfaces=surfaces,
+        forces=_scene_forces(solution) if solution else [],
+        annotations=annotations,
+        source_result=result,
+        source_solution=solution,
+    )

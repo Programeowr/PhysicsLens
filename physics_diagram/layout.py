@@ -1,101 +1,79 @@
-"""Compute layout positions for a scene graph before SVG rendering."""
+"""Scene graph layout for the supported PhysicsLens scenarios."""
 
 from __future__ import annotations
 
 from math import cos, pi, sin
 
-from .schema import SceneAnnotation, SceneCanvas, SceneForce, SceneGraph, SceneObject, SceneSurface
-from .scene_graph import scene_object_by_id
+from .schema import SceneGraph
 
-MIN_FORCE_LENGTH = 48.0
-MAX_FORCE_LENGTH = 180.0
-FORCE_LENGTH_SCALE = 5.0
-LABEL_PADDING = 12.0
+
+def _force_scale(scene: SceneGraph) -> float:
+    return 140.0 / max((force.magnitude_n for force in scene.forces), default=1.0)
+
+
+def _position_force(anchor: tuple[float, float], direction_deg: float, magnitude_n: float, scale: float) -> tuple[float, float, float, float, float, float]:
+    radians = direction_deg * pi / 180
+    length = max(36.0, magnitude_n * scale)
+    x1, y1 = anchor
+    x2, y2 = x1 + length * cos(radians), y1 - length * sin(radians)
+    return x1, y1, x2, y2, x2, y2 - 8
 
 
 def layout_scene(scene: SceneGraph) -> SceneGraph:
-    _layout_canvas(scene.canvas)
-    _layout_surfaces(scene)
-    _layout_objects(scene)
-    _layout_forces(scene)
-    _layout_annotations(scene)
+    scale = _force_scale(scene)
+
+    if scene.scenario_type == "inclined_plane":
+        angle = scene.source_result.geometry.incline_angle_deg or 0.0 if scene.source_result else 0.0
+        radians = angle * pi / 180
+        start, length = (120.0, 500.0), 570.0
+        end = (start[0] + length * cos(radians), start[1] - length * sin(radians))
+        cx = start[0] + 300 * cos(radians) - 22 * sin(radians)
+        cy = start[1] - 300 * sin(radians) - 22 * cos(radians)
+        if scene.objects:
+            obj = scene.objects[0]
+            obj.x, obj.y = cx, cy
+            obj.width, obj.height = 88.0, 56.0
+            obj.rotation_deg = -angle
+        if scene.surfaces:
+            scene.surfaces[0].x1, scene.surfaces[0].y1 = start
+            scene.surfaces[0].x2, scene.surfaces[0].y2 = end
+        for force in scene.forces:
+            force.x1, force.y1, force.x2, force.y2, force.label_x, force.label_y = _position_force((cx, cy), force.direction_deg, force.magnitude_n, scale)
+    elif scene.scenario_type == "horizontal_friction":
+        anchor = (450.0, 365.0)
+        if scene.objects:
+            obj = scene.objects[0]
+            obj.x, obj.y = anchor
+            obj.width, obj.height = 90.0, 60.0
+        if scene.surfaces:
+            scene.surfaces[0].x1, scene.surfaces[0].y1 = 100.0, 420.0
+            scene.surfaces[0].x2, scene.surfaces[0].y2 = 800.0, 420.0
+        for force in scene.forces:
+            force.x1, force.y1, force.x2, force.y2, force.label_x, force.label_y = _position_force(anchor, force.direction_deg, force.magnitude_n, scale)
+    elif scene.scenario_type == "atwood_pulley":
+        anchors = {scene.objects[0].id: (350.0, 410.0), scene.objects[1].id: (550.0, 410.0)} if len(scene.objects) >= 2 else {}
+        for obj in scene.objects[:2]:
+            x, y = anchors[obj.id]
+            obj.x, obj.y = x, y
+            obj.width, obj.height = 76.0, 56.0
+        for force in scene.forces:
+            anchor = anchors.get(force.anchor_id, (450.0, 410.0))
+            force.x1, force.y1, force.x2, force.y2, force.label_x, force.label_y = _position_force(anchor, force.direction_deg, force.magnitude_n, scale)
+    elif scene.scenario_type == "projectile_motion":
+        anchor = (350.0, 370.0)
+        if scene.objects:
+            obj = scene.objects[0]
+            obj.x, obj.y = anchor
+            obj.width, obj.height = 22.0, 22.0
+        for force in scene.forces:
+            force.x1, force.y1, force.x2, force.y2, force.label_x, force.label_y = _position_force(anchor, force.direction_deg, force.magnitude_n, scale)
+    else:
+        anchor = (450.0, 330.0)
+        if scene.objects:
+            obj = scene.objects[0]
+            obj.x, obj.y = anchor
+            obj.width, obj.height = 90.0, 60.0
+        for force in scene.forces:
+            force.x1, force.y1, force.x2, force.y2, force.label_x, force.label_y = _position_force(anchor, force.direction_deg, force.magnitude_n, scale)
+
     return scene
-
-
-def _layout_canvas(canvas: SceneCanvas) -> None:
-    # The canvas dimensions are fixed by the loader; margin reserves breathing room.
-    canvas.width = max(canvas.width, 400)
-    canvas.height = max(canvas.height, 300)
-
-
-def _layout_surfaces(scene: SceneGraph) -> None:
-    width, height, m = scene.canvas.width, scene.canvas.height, scene.canvas.margin
-    for surface in scene.surfaces:
-        if surface.type == "incline":
-            angle = surface.angle or 0.0
-            theta = angle * pi / 180
-            length = width - m * 2
-            start = (m, height - m)
-            end = (m + length * cos(theta), height - m - length * sin(theta))
-            surface.start = start
-            surface.end = end
-        elif surface.type == "ground":
-            surface.start = (m, height - m)
-            surface.end = (width - m, height - m)
-        elif surface.type == "pulley":
-            surface.center = (width / 2, m + 80)
-            surface.radius = 50.0
-        elif surface.type == "trajectory" and surface.points:
-            surface.start = (m, height - m)
-            surface.end = (width - m, height - m)
-
-
-def _layout_objects(scene: SceneGraph) -> None:
-    width, height, m = scene.canvas.width, scene.canvas.height, scene.canvas.margin
-    for obj in scene.objects:
-        if scene.surfaces and scene.surfaces[0].type == "incline":
-            incline = scene.surfaces[0]
-            if incline.start and incline.end:
-                obj.rotation_deg = incline.angle or 0.0
-                center_x = (incline.start[0] + incline.end[0]) / 2
-                center_y = (incline.start[1] + incline.end[1]) / 2
-                offset_x = -obj.height * sin((incline.angle or 0.0) * pi / 180) / 2
-                offset_y = obj.height * cos((incline.angle or 0.0) * pi / 180) / 2
-                obj.position = (center_x + offset_x, center_y + offset_y)
-        elif scene.surfaces and scene.surfaces[0].type == "pulley":
-            if len(scene.objects) >= 2 and scene.surfaces[0].center:
-                cx, cy = scene.surfaces[0].center
-                spacing = 180.0
-                scene.objects[0].position = (cx - spacing, cy + 210)
-                scene.objects[1].position = (cx + spacing, cy + 210)
-        elif scene.surfaces and scene.surfaces[0].type == "trajectory":
-            obj.position = (scene.canvas.width / 2, scene.canvas.height - m - 16)
-        else:
-            obj.position = (scene.canvas.width / 2, scene.canvas.height / 2)
-
-
-def _layout_forces(scene: SceneGraph) -> None:
-    for force in scene.forces:
-        origin_obj = scene_object_by_id(scene, force.origin)
-        if origin_obj is None:
-            continue
-        anchor_x, anchor_y = origin_obj.position
-        force.anchor_position = (anchor_x, anchor_y)
-        length = min(MAX_FORCE_LENGTH, max(MIN_FORCE_LENGTH, force.magnitude_n * FORCE_LENGTH_SCALE))
-        radians = force.direction_deg * pi / 180
-        tip_x = anchor_x + length * cos(radians)
-        tip_y = anchor_y - length * sin(radians)
-        force.tip_position = (tip_x, tip_y)
-        force.label_position = (tip_x, tip_y - LABEL_PADDING)
-
-
-def _layout_annotations(scene: SceneGraph) -> None:
-    for annotation in scene.annotations:
-        if annotation.type == "angle":
-            origin_obj = scene_object_by_id(scene, annotation.origin or "")
-            if origin_obj and scene.surfaces and scene.surfaces[0].start and scene.surfaces[0].end:
-                x1, y1 = scene.surfaces[0].start
-                x2, y2 = scene.surfaces[0].end
-                annotation.position = ((x1 + x2) / 2, (y1 + y2) / 2 + 24)
-                annotation.radius = 40.0
-                annotation.label_position = (annotation.position[0] + 24, annotation.position[1] - 24)

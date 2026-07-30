@@ -1,6 +1,6 @@
 # Architecture
 
-PhysicsLens converts a natural-language physics question into a labeled SVG force diagram. A local Ollama `qwen2.5:7b` model extracts structured facts; all physics calculations and SVG generation remain local and deterministic.
+PhysicsLens converts a natural-language physics question into a labeled SVG force diagram. Parsing, solving, layout, and SVG generation are fully local and deterministic.
 
 ## Data flow
 
@@ -9,7 +9,7 @@ Question text
     │
     ▼
 parser.parse()
-    │  Ollama JSON-schema extraction
+    │  keyword classification + regex quantity extraction
     ▼
 ParseResult
     │
@@ -51,7 +51,7 @@ SVG file / API response
 | `scene_graph.py` | Builds an abstract `SceneGraph` describing what to draw from `ParseResult` and `ForceSolution`. |
 | `layout.py` | Computes responsive object placement, force anchor/tip positions, and annotations without physics logic. |
 | `svg_renderer.py` | Converts the prepared `SceneGraph` into structured SVG groups and styles. |
-| `renderer.py` | Orchestrates scene graph construction, layout, and SVG rendering for each supported scenario. |
+| `renderer.py` | Public rendering facade that orchestrates scene graph construction, layout, and SVG rendering. |
 | `pipeline.py` | Main orchestration function: `solve_and_render(text, output_path)`. |
 | `api.py` | FastAPI interface exposing JSON (`POST /solve`) and direct SVG (`POST /solve.svg`) responses. |
 
@@ -59,7 +59,7 @@ SVG file / API response
 
 `ParseResult` represents what the parser understood from the question. It contains the selected scenario, confidence, objects and masses, geometry, friction information, applied forces, and missing fields.
 
-The Ollama parser requests JSON constrained by a schema and uses temperature `0` with a fixed seed. The prompt instructs Qwen to normalize units to SI and never infer missing numerical values. `parser.py` then validates that JSON while constructing the typed `ParseResult` used by the rest of the pipeline.
+`parser.py` uses deterministic keyword classification and regex-based quantity extraction. It normalizes units to SI and never infers missing numerical values.
 
 `ForceSolution` is created only after a complete parse. It contains `ForceVector` values with a numeric magnitude, direction in screen coordinates, and the object each force acts on.
 
@@ -67,6 +67,7 @@ The rendering pipeline now separates responsibilities:
 - `scene_graph.py` describes what to draw.
 - `layout.py` computes positions, orientations, and label placement.
 - `svg_renderer.py` draws the final SVG from the prepared graph.
+- `renderer.py` is only the facade that connects those steps.
 
 Renderer code never calculates physics values; it only displays the solution.
 
@@ -100,7 +101,7 @@ To add a scenario without changing `pipeline.py`:
 1. Add keywords and required slots in `classifier.py`.
 2. Extend `slots.py` if new quantities or domain fields are needed.
 3. Add a solver in `physics_engine.py` and register it in `SOLVERS`.
-4. Add an SVG renderer in `renderer.py` and register it in `RENDERERS`.
+4. Add a scene-graph branch in `scene_graph.py` and positioning rules in `layout.py`.
 5. Add parser, solver, and integration tests under `physics_diagram/tests/`.
 
-The pipeline dispatches through these registries, keeping scenario additions localized.
+The pipeline dispatches through the parser, solver registry, and scene-graph/layout/rendering layers, keeping scenario additions localized.

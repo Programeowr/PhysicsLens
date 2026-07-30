@@ -1,0 +1,146 @@
+.gooey-btn {
+  isolation: isolate;
+}
+
+.gooey-btn .gooey-surface {
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  pointer-events: none;
+  z-index: 0;
+}
+
+.gooey-btn .gooey-surface::before {
+  content: "";
+  position: absolute;
+  inset: -32px;
+  background: var(--gooey-glow, rgba(255, 255, 255, 0.2));
+  opacity: 0;
+  filter: blur(14px) contrast(110);
+  transition: opacity 180ms ease-out;
+}
+
+.gooey-btn .gooey-surface::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  background: var(--gooey-fill, rgba(255, 255, 255, 0.92));
+  transform: scale(0.65);
+  opacity: 0;
+}
+
+.gooey-btn.is-active .gooey-surface::before {
+  opacity: 1;
+}
+
+.gooey-btn .gooey-surface.is-triggered::after {
+  animation: gooey-pill 320ms cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+
+.gooey-btn .gooey-label {
+  position: relative;
+  z-index: 2;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.gooey-btn .gooey-particle,
+.gooey-btn .gooey-point {
+  display: block;
+  opacity: 0;
+  width: 16px;
+  height: 16px;
+  border-radius: 999px;
+  transform-origin: center;
+  pointer-events: none;
+}
+
+.gooey-btn .gooey-particle {
+  position: absolute;
+  top: calc(50% - 8px);
+  left: calc(50% - 8px);
+  animation: gooey-particle var(--time) ease 1;
+  z-index: 1;
+}
+
+.gooey-btn .gooey-point {
+  background: var(--particle-color, #ffffff);
+  opacity: 1;
+  animation: gooey-point var(--time) ease 1;
+}
+
+.gooey-btn-primary {
+  --gooey-fill: rgba(255, 255, 255, 0.94);
+  --gooey-glow: rgba(174, 197, 255, 0.42);
+}
+
+.gooey-btn-subtle {
+  --gooey-fill: rgba(91, 124, 255, 0.18);
+  --gooey-glow: rgba(91, 124, 255, 0.22);
+}
+
+.gooey-btn-subtle.is-active {
+  color: var(--accent);
+}
+
+@keyframes gooey-pill {
+  0% {
+    transform: scale(0.65);
+    opacity: 0;
+  }
+
+  100% {
+    transform: scale(1);
+    opacity: 1;
+  }
+}
+
+@keyframes gooey-particle {
+  0% {
+    transform: rotate(0deg) translate(var(--start-x), var(--start-y));
+    opacity: 1;
+    animation-timing-function: cubic-bezier(0.55, 0, 1, 0.45);
+  }
+
+  70% {
+    transform: rotate(calc(var(--rotate) * 0.5)) translate(calc(var(--end-x) * 1.2), calc(var(--end-y) * 1.2));
+    opacity: 1;
+    animation-timing-function: ease;
+  }
+
+  85% {
+    transform: rotate(calc(var(--rotate) * 0.66)) translate(var(--end-x), var(--end-y));
+    opacity: 1;
+  }
+
+  100% {
+    transform: rotate(calc(var(--rotate) * 1.2)) translate(calc(var(--end-x) * 0.5), calc(var(--end-y) * 0.5));
+    opacity: 0;
+  }
+}
+
+@keyframes gooey-point {
+  0% {
+    transform: scale(0);
+    opacity: 0;
+    animation-timing-function: cubic-bezier(0.55, 0, 1, 0.45);
+  }
+
+  30% {
+    transform: scale(calc(var(--scale) * 0.4));
+    opacity: 1;
+  }
+
+  65% {
+    transform: scale(var(--scale));
+    opacity: 1;
+    animation-timing-function: ease;
+  }
+
+  100% {
+    transform: scale(0);
+    opacity: 0;
+  }
+}

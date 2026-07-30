@@ -28,6 +28,97 @@ class AppliedForce:
 
 
 @dataclass
+class DiagramIntent:
+    title: str = ""
+    view_mode: str = "fbd"
+    emphasize_components: bool = False
+    show_annotations: bool = True
+
+
+@dataclass
+class RenderHints:
+    scene_style: str = "default"
+    object_shape: str = "box"
+    show_surface: bool = True
+    show_title: bool = True
+
+
+@dataclass
+class SceneCanvas:
+    width: float = 900.0
+    height: float = 620.0
+    background: str = "white"
+
+
+@dataclass
+class SceneObject:
+    id: str
+    label: str
+    shape: str = "box"
+    mass_kg: Optional[float] = None
+    x: float = 0.0
+    y: float = 0.0
+    width: float = 0.0
+    height: float = 0.0
+    rotation_deg: float = 0.0
+    fill: str = "#e6e6e6"
+    stroke: str = "#222"
+
+
+@dataclass
+class SceneSurface:
+    kind: str
+    x1: float = 0.0
+    y1: float = 0.0
+    x2: float = 0.0
+    y2: float = 0.0
+    stroke: str = "#555"
+    stroke_width: float = 4.0
+    angle_deg: Optional[float] = None
+
+
+@dataclass
+class SceneForce:
+    name: str
+    magnitude_n: float
+    direction_deg: float
+    anchor_id: str
+    x1: float = 0.0
+    y1: float = 0.0
+    x2: float = 0.0
+    y2: float = 0.0
+    label_x: float = 0.0
+    label_y: float = 0.0
+    color: str = "#333"
+
+
+@dataclass
+class SceneAnnotation:
+    text: str
+    x: float
+    y: float
+    anchor_id: Optional[str] = None
+    align: str = "middle"
+    fill: str = "#222"
+    size: float = 14.0
+
+
+@dataclass
+class SceneGraph:
+    canvas: SceneCanvas
+    title: str
+    scenario_type: Optional[str]
+    intent: DiagramIntent
+    hints: RenderHints
+    objects: list[SceneObject]
+    surfaces: list[SceneSurface]
+    forces: list[SceneForce]
+    annotations: list[SceneAnnotation]
+    source_result: Optional[ParseResult] = None
+    source_solution: Optional[ForceSolution] = None
+
+
+@dataclass
 class ParseResult:
     scenario_type: Optional[str]
     confidence: float
