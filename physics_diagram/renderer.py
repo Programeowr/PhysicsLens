@@ -10,9 +10,15 @@ from .svg_renderer import render_scene
 from .schema import ForceSolution, ParseResult
 
 
-def render_diagram(result: ParseResult, solution: ForceSolution | None, output_path: str, render_options: dict[str, Any] | None = None) -> str:
+def render_diagram(
+    result: ParseResult,
+    solution: ForceSolution | None,
+    output_path: str,
+    render_options: dict[str, Any] | None = None,
+    diagnostics: bool = False,
+) -> str:
     scene = build_scene_graph(result, solution, render_options)
-    laid_out = layout_scene(scene)
+    laid_out = layout_scene(scene, diagnostics=diagnostics)
     return render_scene(laid_out, output_path)
 
 

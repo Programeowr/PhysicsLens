@@ -8,6 +8,7 @@ from typing import Any
 from .classifier import REQUIRED_SLOTS, classify_scenario
 from .schema import ParseResult
 from .slots import extract_applied_forces, extract_friction, extract_geometry, extract_objects, extract_unknowns
+from .visual_features import extract_visual_features
 
 
 @lru_cache(maxsize=1)
@@ -62,6 +63,8 @@ def parse(text: str) -> ParseResult:
     if scenario == "projectile_motion" and geometry.projectile_angle_deg is None and geometry.incline_angle_deg is not None:
         geometry.projectile_angle_deg = geometry.incline_angle_deg
     friction, mu = extract_friction(text)
+    object_ids = [o.id for o in objects]
+    visual_features = extract_visual_features(text, object_ids, scenario)
     return ParseResult(
         scenario_type=scenario,
         confidence=confidence,
@@ -73,4 +76,5 @@ def parse(text: str) -> ParseResult:
         unknowns=extract_unknowns(text),
         missing_required=_missing_slots(scenario, objects, geometry),
         raw_text=text,
+        visual_features=visual_features,
     )

@@ -163,7 +163,7 @@ export default function ReactiveButton({
       style={style}
       type={type}
       disabled={disabled}
-      data-magnetic={magnetic ? true : undefined}
+      data-magnetic={magnetic && variant !== "primary" ? true : undefined}
       onMouseMove={handleMove}
       onMouseLeave={reset}
       onMouseEnter={triggerGooey}

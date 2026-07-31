@@ -13,6 +13,32 @@ from fastapi.responses import Response
 from pydantic import BaseModel
 
 from .pipeline import solve_and_render
+from .schema import VisualFeatures
+
+
+def _visual_features_dict(vf: VisualFeatures) -> dict:
+    """Serialise VisualFeatures to a plain dict suitable for JSON responses."""
+    return {
+        "object_types": vf.object_types,
+        "surface_type": vf.surface_type,
+        "motion_state": vf.motion_state,
+        "requested_view": vf.requested_view,
+        "force_mentions": [
+            {"force_type": fm.force_type, "provenance": fm.provenance, "direction_hint": fm.direction_hint}
+            for fm in vf.force_mentions
+        ],
+        "constraint_relationships": [
+            {"kind": cr.kind, "object_a_id": cr.object_a_id, "object_b_id": cr.object_b_id}
+            for cr in vf.constraint_relationships
+        ],
+        "known_quantities": vf.known_quantities,
+        "unknown_quantities": vf.unknown_quantities,
+        "ambiguity_flags": [
+            {"field": af.field, "reason": af.reason, "confidence": af.confidence}
+            for af in vf.ambiguity_flags
+        ],
+        "is_ambiguous": vf.is_ambiguous,
+    }
 
 app = FastAPI(title="Physics Diagram Generator", version="2.0")
 
@@ -41,6 +67,8 @@ def solve_question(request: SolveRequest) -> dict[str, object]:
         }
         if result.get("force_solution"):
             response["force_solution"] = asdict(result["force_solution"])
+        parse_result = result["parse_result"]
+        response["visual_features"] = _visual_features_dict(parse_result.visual_features)
         if result["status"] == "ok" and result["diagram_path"]:
             response["diagram_svg_base64"] = base64.b64encode(
                 Path(str(result["diagram_path"])).read_bytes()
