@@ -37,17 +37,21 @@ def solve_inclined_plane(result: ParseResult) -> ForceSolution:
         friction = 0.0
     elif result.mu is not None:
         friction = result.mu * normal
-        if friction:
+        if friction > 0:
             forces.append(ForceVector("friction", friction, angle, result.objects[0].id))
-    required = along - friction if friction is not None else None
-    if required is not None and required > 0:
-        forces.append(ForceVector("applied_force", required, angle, result.objects[0].id))
-    elif required is not None and required < 0:
-        forces.append(ForceVector("applied_force", abs(required), (angle + 180) % 360, result.objects[0].id))
+    
+    # Only add required force when not explicitly provided via applied_forces
+    if not result.applied_forces:
+        required = along - friction if friction is not None else None
+        if required is not None and required > 0:
+            forces.append(ForceVector("applied_force", required, angle, result.objects[0].id))
+        elif required is not None and required < 0:
+            forces.append(ForceVector("applied_force", abs(required), (angle + 180) % 360, result.objects[0].id))
+    
     forces.extend(_applied_vectors(result, angle))
     return ForceSolution("inclined_plane", forces, {
         "normal_force_n": normal, "gravity_along_incline_n": along,
-        "friction_force_n": friction, "required_force_to_hold_at_rest_n": required,
+        "friction_force_n": friction, "required_force_to_hold_at_rest_n": along - (friction or 0),
     })
 
 
@@ -59,7 +63,7 @@ def solve_horizontal_friction(result: ParseResult) -> ForceSolution:
         ForceVector("weight", mass * G, 270.0, result.objects[0].id),
         ForceVector("normal_force", normal, 90.0, result.objects[0].id),
     ]
-    if friction:
+    if friction is not None and friction > 0:
         forces.append(ForceVector("friction", friction, 180.0, result.objects[0].id))
     forces.extend(_applied_vectors(result, 0.0))
     return ForceSolution("horizontal_friction", forces, {"normal_force_n": normal, "friction_force_n": friction})
@@ -98,8 +102,49 @@ def solve_projectile_motion(result: ParseResult) -> ForceSolution:
 
 
 def _applied_vectors(result: ParseResult, default_angle: float) -> list[ForceVector]:
-    mapping = {"right": 0.0, "left": 180.0, "uphill": default_angle}
-    return [ForceVector("applied_force", force.magnitude_n, mapping.get(force.direction, default_angle), result.objects[0].id) for force in result.applied_forces]
+    """Convert AppliedForce specs to ForceVector with proper angle handling.
+    
+    For horizontal scenarios (default_angle=0):
+    - "right" → 0°, "left" → 180°
+    - angle_deg with reference_frame="horizontal" → use angle directly
+    - angle_deg "above horizontal" → positive angle, "below" → negative
+    
+    For inclined scenarios (default_angle=incline_angle):
+    - "uphill" → incline angle, "downhill" → incline + 180
+    - angle_deg with reference_frame="incline" → add to incline angle
+    """
+    mapping = {"right": 0.0, "left": 180.0, "uphill": default_angle, "down": (default_angle + 180) % 360}
+    vectors: list[ForceVector] = []
+    
+    for force in result.applied_forces:
+        # Start with direction-based angle
+        if force.direction in mapping:
+            base_angle = mapping[force.direction]
+        else:
+            base_angle = default_angle
+        
+        # Override with explicit angle if provided
+        if force.angle_deg is not None:
+            if force.reference_frame == "horizontal":
+                # Angle relative to horizontal (screen coordinates: 0° = right, 90° = down)
+                # "30° above horizontal" means -30° in screen coords (upward)
+                # but for force visualization we typically want the stated angle
+                base_angle = force.angle_deg if "below" not in result.raw_text.lower() else 360 - force.angle_deg
+            elif force.reference_frame == "incline":
+                # Angle relative to incline direction
+                base_angle = default_angle + force.angle_deg
+            elif force.reference_frame == "vertical":
+                # Angle relative to vertical
+                base_angle = 90.0 + force.angle_deg
+        
+        vectors.append(ForceVector(
+            "applied_force",
+            force.magnitude_n,
+            base_angle,
+            result.objects[0].id if result.objects else "object_1"
+        ))
+    
+    return vectors
 
 
 SOLVERS = {

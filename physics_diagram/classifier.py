@@ -5,9 +5,10 @@ from __future__ import annotations
 SCENARIO_TRIGGERS: dict[str, list[str]] = {
     "inclined_plane": ["incline", "inclined plane", "ramp", "slope", "inclination", "slanted plane"],
     "atwood_pulley": ["pulley", "atwood", "hanging mass", "hanging masses", "two masses"],
-    "horizontal_friction": ["horizontal surface", "flat surface", "floor", "table", "horizontal plane"],
-    "projectile_motion": ["thrown", "launched", "projectile", "trajectory", "fired", "at an angle"],
-    "circular_motion": ["circular", "orbit", "loop", "centripetal", "revolves"],
+    "horizontal_friction": ["horizontal surface", "flat surface", "floor", "table", "horizontal plane", 
+                            "pushed across", "pulled across", "sliding across", "crate", "suitcase"],
+    "projectile_motion": ["thrown", "launched", "projectile", "trajectory", "fired"],
+    "circular_motion": ["circular", "orbit", "loop", "centripetal", "revolves", "circle"],
     "spring_mass": ["spring", "spring constant", "hooke's law"],
 }
 

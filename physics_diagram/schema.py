@@ -77,7 +77,9 @@ class Geometry:
 @dataclass
 class AppliedForce:
     magnitude_n: float
-    direction: str = "unspecified"
+    direction: str = "unspecified"  # right | left | uphill | unspecified
+    angle_deg: Optional[float] = None  # angle relative to horizontal (for angled pulls/pushes)
+    reference_frame: str = "horizontal"  # horizontal | incline | vertical
 
 
 # ──────────────────────────────────────────────────────────────────────────────

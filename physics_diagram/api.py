@@ -12,7 +12,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import Response
 from pydantic import BaseModel
 
-from .pipeline import solve_and_render
+from .pipeline import ParserMode, solve_and_render
 from .schema import VisualFeatures
 
 
@@ -53,6 +53,15 @@ app.add_middleware(
 
 class SolveRequest(BaseModel):
     text: str
+    parser: ParserMode = "deterministic"
+    """Which parser to use: ``"deterministic"`` (default) or ``"llm"``.
+
+    - ``"deterministic"``: Fast regex/keyword extraction (~5ms).
+    - ``"llm"``: Hybrid mode — tries deterministic first, falls back to
+      Ollama qwen2.5:7b if the parse is incomplete (~2–10s when LLM runs).
+    
+    Most requests should use deterministic. Enable LLM for edge cases.
+    """
 
 
 @app.post("/solve")
@@ -60,10 +69,11 @@ def solve_question(request: SolveRequest) -> dict[str, object]:
     with NamedTemporaryFile(suffix=".svg", delete=False) as temp:
         output_path = temp.name
     try:
-        result = solve_and_render(request.text, output_path)
+        result = solve_and_render(request.text, output_path, parser=request.parser)
         response: dict[str, object] = {
             "status": result["status"],
             "missing_fields": result["missing_fields"],
+            "parser_used": request.parser,
         }
         if result.get("force_solution"):
             response["force_solution"] = asdict(result["force_solution"])
@@ -84,7 +94,7 @@ def solve_question_svg(request: SolveRequest) -> Response:
     with NamedTemporaryFile(suffix=".svg", delete=False) as temp:
         output_path = temp.name
     try:
-        result = solve_and_render(request.text, output_path)
+        result = solve_and_render(request.text, output_path, parser=request.parser)
         if result["status"] != "ok" or not result["diagram_path"]:
             missing = ", ".join(result["missing_fields"])
             return Response(f"Unable to solve: {missing}", status_code=422, media_type="text/plain")
