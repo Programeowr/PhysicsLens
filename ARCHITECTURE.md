@@ -1,107 +1,161 @@
-# Architecture
+# PhysicsLens Architecture
 
-PhysicsLens converts a natural-language physics question into a labeled SVG force diagram. Parsing, solving, layout, and SVG generation are fully local and deterministic.
+PhysicsLens converts a natural-language physics question into a labeled SVG free-body diagram. Parsing, solving, layout, and SVG generation are fully local and deterministic by default, with an optional LLM fallback for hard inputs.
 
-## Data flow
+This document describes the system **as currently wired and running** on branch `3.0`. Experimental layers that exist in the codebase but are not yet reachable from the API are listed separately at the end.
+
+---
+
+## Runtime data flow
 
 ```text
-Question text
+Question text (POST /solve or /solve.svg)
     │
     ▼
-parser.parse()
-    │  keyword classification + regex quantity extraction
-    ▼
-ParseResult
+api.py  ── FastAPI adapter (CORS enabled)
     │
+    ▼
+pipeline.solve_and_render(text, parser="deterministic" | "llm")
+    │
+    ├── ALWAYS: parser.parse()                      ← deterministic (~5 ms)
+    │       classifier.classify_scenario()          keyword scoring → scenario + confidence
+    │       slots.extract_*()                       objects, geometry, friction,
+    │       │                                       applied forces, requested unknowns
+    │       visual_features.extract_visual_features()  renderer hints (shape, texture, motion)
+    │       → ParseResult (+ attached VisualFeatures)
+    │
+    ├── ONLY IF parser="llm" AND parse incomplete:
+    │       llm_parser.parse_with_llm()             Ollama qwen2.5:7b, JSON-constrained
+    │                                               falls back silently to deterministic result
+    │                                               if Ollama is unreachable
     ▼
 validation.validate()
     │
-    ├── incomplete → generic SVG + missing-field response
+    ├── incomplete → generic FBD SVG + "needs_clarification" (missing fields listed)
+    │               (incomplete prompts are appended to parse_failures.log)
     │
     ▼ complete
-physics_engine.solve()
-    │  Newtonian calculations
-    ▼
-ForceSolution
+physics_engine.solve()   ← dispatches via SOLVERS registry
     │
     ▼
-scene_graph.build_scene_graph()
-    │  Abstract scene description of objects, surfaces, forces, and annotations
+ForceSolution  (ForceVector list + derived values)
+    │
     ▼
-layout.layout_scene()
-    │  Responsive positioning and sizing
+renderer.render_diagram()  ── facade, no physics logic
+    ├── scene_graph.build_scene_graph()     WHAT to draw (objects, surfaces, forces, labels)
+    ├── layout.layout_scene()               WHERE (responsive positions, anchors, label slots)
+    └── svg_renderer.render_scene()         HOW (structured SVG groups + styles)
+    │
     ▼
-svg_renderer.render_scene()
-    │  Pure SVG drawing from the scene graph
-    ▼
-SVG file / API response
+SVG file / Base64 in JSON response
 ```
+
+Key invariant: **renderer code never calculates physics values** — it only displays what `physics_engine` produced.
+
+---
 
 ## Modules
 
+### Runtime path (wired to the API)
+
 | Module | Responsibility |
 | --- | --- |
-| `schema.py` | Typed dataclasses shared throughout the application: `ParseResult`, `ForceSolution`, and force/object specifications. |
-| `classifier.py` | Keyword-trigger scenario classification and each scenario's required slot list. |
-| `quantities.py` | Regex extraction plus unit conversion for mass, angle, speed, and force values; also supports common spelled-out numbers. |
-| `slots.py` | Converts extracted quantities and keywords into objects, geometry, friction, applied forces, and requested unknowns. |
-| `parser.py` | Calls local Ollama with a JSON-schema-constrained prompt and converts the result into a `ParseResult`. |
-| `validation.py` | Validation gate. Incomplete parses are returned without reaching a solver. |
-| `physics_engine.py` | Scenario-specific physics calculations and the solver dispatcher. The Atwood solver uses SymPy equations. |
-| `scene_graph.py` | Builds an abstract `SceneGraph` describing what to draw from `ParseResult` and `ForceSolution`. |
-| `layout.py` | Computes responsive object placement, force anchor/tip positions, and annotations without physics logic. |
-| `svg_renderer.py` | Converts the prepared `SceneGraph` into structured SVG groups and styles. |
-| `renderer.py` | Public rendering facade that orchestrates scene graph construction, layout, and SVG rendering. |
-| `pipeline.py` | Main orchestration function: `solve_and_render(text, output_path)`. |
-| `api.py` | FastAPI interface exposing JSON (`POST /solve`) and direct SVG (`POST /solve.svg`) responses. |
+| `api.py` | FastAPI app. `POST /solve` (JSON + Base64 SVG) and `POST /solve.svg` (raw SVG). Accepts optional `"parser"` field (`"deterministic"` default, `"llm"` hybrid). |
+| `pipeline.py` | Orchestrator: parse → validate → solve → render. Owns the LLM-fallback logic. |
+| `parser.py` | Deterministic parser entry point. Composes classifier + slot extractors + visual-feature extraction. Logs incomplete parses to `parse_failures.log`. |
+| `classifier.py` | Keyword-trigger scenario classification; defines each scenario's required slots. |
+| `quantities.py` | Regex extraction + unit conversion for masses, angles, speeds, forces (incl. spelled-out numbers). |
+| `slots.py` | Maps quantities/keywords onto typed schema slots: `ObjectSpec`, `Geometry`, `FrictionInfo`, `AppliedForce`, unknowns. |
+| `visual_features.py` | Extracts renderer-facing features from raw text (object shapes, surface type, motion state, force mentions, constraints, ambiguity flags). Deterministic and side-effect free. |
+| `validation.py` | Gate: an incomplete parse never reaches a solver. |
+| `physics_engine.py` | Scenario solvers producing `ForceVector` lists + `derived_values`. Atwood solver uses SymPy symbolic algebra. |
+| `renderer.py` | Public rendering facade connecting scene graph → layout → SVG. |
+| `scene_graph.py` | Builds the abstract draw-list from `ParseResult` + `ForceSolution`. |
+| `layout.py` | Computes object placement, force anchor/tip coordinates, label placement. No physics logic. |
+| `svg_renderer.py` | Emits structured SVG groups and styles from the laid-out scene. |
+| `schema.py` | Shared dataclasses: `ParseResult`, `ForceSolution`, `VisualFeatures`, force/object specs. |
+| `llm_parser.py` | Ollama client for `qwen2.5:7b`. JSON-mode prompt → mapped back to `ParseResult`. |
+| `exceptions.py` | Shared exception types. |
 
-## Core data structures
+### Experimental layers (in the tree, not wired to the API)
 
-`ParseResult` represents what the parser understood from the question. It contains the selected scenario, confidence, objects and masses, geometry, friction information, applied forces, and missing fields.
+| Module | Status |
+| --- | --- |
+| `semantic_parser/` (9 extractor modules) | Extracts entities, relations, connections, states, enriched forces, constraints, materials, render hints → `SemanticFeatures`. Not called by any runtime module yet. |
+| `scene_graph_schema.py` + `scene_graph_builder.py` | Merges `ParseResult` + `SemanticFeatures` + `ForceSolution` into a unified `SceneGraph` IR ("AST of the scene"). Only referenced by `enhanced_pipeline.py`. |
+| `enhanced_pipeline.py` | Six-stage orchestration with semantic enrichment (`solve_and_render_enhanced`). Currently has no callers — the intended v3 direction. |
+| `unified_parser.py` + `physics_features.py` + `scene_features.py` + `render_features.py` | Alternative three-category feature model (physics / scene / render). Reached only via root-level scripts and `tests/test_unified_architecture.py`. |
 
-`parser.py` uses deterministic keyword classification and regex-based quantity extraction. It normalizes units to SI and never infers missing numerical values.
+These layers are backward-compatible experiments: the standard pipeline above remains the production path until the semantic/enhanced pipeline is validated and switched on.
 
-`ForceSolution` is created only after a complete parse. It contains `ForceVector` values with a numeric magnitude, direction in screen coordinates, and the object each force acts on.
+---
 
-The rendering pipeline now separates responsibilities:
-- `scene_graph.py` describes what to draw.
-- `layout.py` computes positions, orientations, and label placement.
-- `svg_renderer.py` draws the final SVG from the prepared graph.
-- `renderer.py` is only the facade that connects those steps.
+## Parser modes
 
-Renderer code never calculates physics values; it only displays the solution.
+| Mode | Trigger | Behaviour | Speed |
+| --- | --- | --- | --- |
+| **Deterministic** (default) | Always runs first | Keyword classification + regex extraction. Fully offline. Limited to coded patterns. | ~5 ms |
+| **LLM hybrid** | Request body `"parser": "llm"` **and** deterministic parse incomplete | Ollama `qwen2.5:7b` with JSON-schema-constrained output; graceful fallback to deterministic on any failure. | ~2–10 s |
+
+The frontend currently does **not** send the `parser` field, so UI traffic is 100% deterministic unless the field is added.
+
+To use LLM mode locally:
+
+```bash
+ollama pull qwen2.5:7b && ollama serve
+curl -X POST http://localhost:8000/solve \
+  -H "Content-Type: application/json" \
+  -d '{"text": "A 10kg box on a 25 degree incline", "parser": "llm"}'
+```
+
+---
 
 ## Supported scenarios
 
-The current solver and renderer registry supports:
+| Scenario | Solvers registry key | Notes |
+| --- | --- | --- |
+| Inclined plane | `inclined_plane` | Weight decomposition, normal force, optional friction & holding force |
+| Horizontal friction | `horizontal_friction` | Normal force, kinetic friction, angled applied forces |
+| Atwood pulley | `atwood_pulley` | SymPy symbolic solve for acceleration & tension |
+| Projectile motion | `projectile_motion` | Range, max height, time of flight |
 
-- Inclined plane
-- Horizontal friction
-- Atwood pulley
-- Projectile motion
+Circular motion and spring-mass are *recognized* by the classifier but return `unsupported_scenario` until their solvers are registered in `SOLVERS`.
 
-The classifier also recognizes circular motion and spring-mass prompts. They return an `unsupported_scenario` response until their solver and renderer are added.
+---
 
-## API behavior
+## API surface
 
-`POST /solve` returns JSON with a status and a Base64-encoded SVG for successful requests.
+Both endpoints accept `{"text": "...", "parser": "deterministic" | "llm"}`.
 
-`POST /solve.svg` returns the SVG directly with the `image/svg+xml` content type. This is useful for downloading an image or embedding it in a web page:
+| Endpoint | Success | Failure |
+| --- | --- | --- |
+| `POST /solve` | JSON: `status`, `missing_fields`, `force_solution`, `visual_features`, `diagram_svg_base64` | `status`: `needs_clarification` (missing fields listed) or `unsupported_scenario` |
+| `POST /solve.svg` | Raw SVG, `image/svg+xml` | `422` plain-text error |
 
-```html
-<img src="diagram.svg" alt="Physics force diagram">
-```
+---
 
-Incomplete questions return `needs_clarification` and list the missing required fields. For example, an incline question without mass or angle will not reach the physics engine.
+## Frontend
+
+Vite + React 18 ("brutalist" visual direction) in `frontend/`.
+
+- `src/components/LabPanel.jsx` posts `{text}` to `${API_BASE}/solve`, decodes the Base64 SVG, and renders it inline alongside derived values.
+- `API_BASE` defaults to `http://127.0.0.1:8000`; override via `frontend/.env` → `VITE_API_BASE=...`.
+- Run with `npm --prefix frontend run dev`; verify with `npm --prefix frontend run build`.
+
+---
 
 ## Extending the system
 
-To add a scenario without changing `pipeline.py`:
+### Add a new scenario (localized changes)
 
-1. Add keywords and required slots in `classifier.py`.
-2. Extend `slots.py` if new quantities or domain fields are needed.
-3. Add a solver in `physics_engine.py` and register it in `SOLVERS`.
-4. Add a scene-graph branch in `scene_graph.py` and positioning rules in `layout.py`.
-5. Add parser, solver, and integration tests under `physics_diagram/tests/`.
+1. Keywords + required slots in `classifier.py`.
+2. New quantity patterns in `quantities.py` / slot mapping in `slots.py` (if needed).
+3. Solver in `physics_engine.py`, registered in `SOLVERS`.
+4. Scene-graph branch in `scene_graph.py` + positioning rules in `layout.py`.
+5. Parser/solver/integration tests under `physics_diagram/tests/`.
 
-The pipeline dispatches through the parser, solver registry, and scene-graph/layout/rendering layers, keeping scenario additions localized.
+No changes to `pipeline.py` or `api.py` are required — they dispatch through the registries.
+
+### Activate the semantic pipeline (future)
+
+Wire `enhanced_pipeline.solve_and_render_enhanced` into `api.py` once its `SceneGraph` output drives `layout.py`/`svg_renderer.py`. The semantic modules are independently unit-tested (`tests/test_semantic_parser.py`).

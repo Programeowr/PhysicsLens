@@ -40,8 +40,8 @@ PhysicsLens parses a constrained subset of English-language physics problems, so
 ```powershell
 # Windows PowerShell
 py -3 -m venv .venv
-& .\.venv\Scripts\python.exe -m pip install -r physics_diagram\requirements.txt
-& .\.venv\Scripts\python.exe -m spacy download en_core_web_sm
+& .\.venv314\Scripts\python.exe -m pip install -r physics_diagram\requirements.txt
+& .\.venv314\Scripts\python.exe -m spacy download en_core_web_sm
 ```
 
 ```bash
@@ -57,7 +57,7 @@ python3 -m venv .venv
 ### 2. Start the API server
 
 ```powershell
-& .\.venv\Scripts\python.exe -m uvicorn physics_diagram.api:app --reload
+& .\.venv314\Scripts\python.exe -m uvicorn physics_diagram.api:app --reload
 ```
 
 The interactive API docs are at **[http://127.0.0.1:8000/docs](http://127.0.0.1:8000/docs)**.

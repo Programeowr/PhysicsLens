@@ -21,7 +21,7 @@ This repository contains a Python physics solver with a layered SVG rendering pi
 - Prefer minimal, focused changes.
 - Do not revert user changes unless explicitly asked.
 - Preserve the existing brutalist visual direction for the frontend.
-- Keep backend renderer changes aligned with the current layered pipeline and update `todo.md` and `Architecture.md` when that architecture changes.
+- Keep backend renderer changes aligned with the current layered pipeline and update `todo.md` and `ARCHITECTURE.md` when that architecture changes.
 
 ## Shared Agent Memory
 - Treat `todo.md` as the active working roadmap for this repo.

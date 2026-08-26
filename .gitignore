@@ -14,4 +14,8 @@ htmlcov/
 build/
 *.egg-info/
 diagram.svg
+test.svg
+test_suitcase.svg
+parse_failures.log
+test_output.txt
 
