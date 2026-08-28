@@ -42,8 +42,18 @@ logger = logging.getLogger(__name__)
 
 # ── Ollama connection ─────────────────────────────────────────────────────────
 
-OLLAMA_BASE_URL = "http://localhost:11434"
-OLLAMA_MODEL = "qwen2.5:7b"
+import os
+
+OLLAMA_URL = os.getenv(
+    "OLLAMA_URL",
+    "http://localhost:11434"
+)
+LLM_MODEL = os.getenv(
+    "LLM_MODEL",
+    "qwen2.5:7b"
+)
+OLLAMA_BASE_URL = OLLAMA_URL
+OLLAMA_MODEL = LLM_MODEL
 OLLAMA_TIMEOUT = 60.0   # seconds — LLM inference can be slow on CPU
 OLLAMA_NUM_CTX = 2048   # reduced context window for faster inference
 

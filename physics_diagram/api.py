@@ -69,6 +69,10 @@ class SolveRequest(BaseModel):
     """
 
 
+@app.get("/health")
+def health():
+    return {"status": "ok"}
+
 @app.post("/solve")
 def solve_question(request: SolveRequest) -> dict[str, object]:
     with NamedTemporaryFile(suffix=".svg", delete=False) as temp:
