@@ -1,6 +1,6 @@
 # PhysicsLens
 
-**Turn natural-language physics questions into labeled SVG force diagrams — no LLMs, no external APIs, fully deterministic.**
+> AI-powered Free Body Diagram generator for physics students. Paste a Newton's Laws problem (or upload a photo) and get an instant, color-coded Free body diagram.
 
 PhysicsLens parses a constrained subset of English-language physics problems, solves the underlying Newtonian equations, and renders publication-ready SVG free-body diagrams — all at runtime with zero network calls.
 
