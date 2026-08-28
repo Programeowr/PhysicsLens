@@ -45,16 +45,16 @@ def _run_parser(text: str, parser: ParserMode):
 def solve_and_render(
     text: str,
     output_path: str,
-    parser: ParserMode = "deterministic",
+    parser: ParserMode = "llm",
 ) -> dict[str, Any]:
     """Return parsing, solution, SVG path and a clear status for one question.
 
     Args:
         text: Raw natural-language physics problem.
         output_path: File path where the SVG will be written.
-        parser: ``"deterministic"`` (default) uses the regex/keyword pipeline;
-                ``"llm"`` enables hybrid mode: tries deterministic first, then
-                falls back to Ollama qwen2.5:7b if the parse is incomplete.
+        parser: ``"llm"`` (default) enables hybrid mode: tries deterministic first, then
+                falls back to Ollama qwen2.5:7b if the parse is incomplete;
+                ``"deterministic"`` uses only the regex/keyword pipeline.
     """
     result = validate(_run_parser(text, parser))
     if not result.is_complete:

@@ -15,6 +15,7 @@ export default function LabPanel() {
   const [message, setMessage] = useState("Describe your problem and hit generate.");
   const [svgData, setSvgData] = useState("");
   const [details, setDetails] = useState(null);
+  const [missingFields, setMissingFields] = useState([]);
 
   const detailRows = useMemo(() => {
     if (!details?.force_solution?.derived_values) {
@@ -41,9 +42,18 @@ export default function LabPanel() {
 
       const data = await response.json();
       if (data.status !== "ok") {
-        const missing = data.missing_fields?.length ? data.missing_fields.join(", ") : "unknown values";
+        const missing = data.missing_fields?.length ? data.missing_fields : [];
         setStatus("error");
-        setMessage(`Need more details: ${missing}`);
+        if (missing.length > 0) {
+          setMessage(`Missing information. Please provide:`);
+          setMissingFields(missing);
+        } else if (data.status === "unsupported_scenario") {
+          setMessage(`This scenario type is not yet supported.`);
+          setMissingFields([]);
+        } else {
+          setMessage(`Unable to parse the problem.`);
+          setMissingFields([]);
+        }
         setSvgData("");
         setDetails(null);
         return;
@@ -51,6 +61,7 @@ export default function LabPanel() {
 
       setSvgData(decodeSvg(data.diagram_svg_base64));
       setDetails(data);
+      setMissingFields([]);
       setStatus("ready");
       setMessage("Diagram generated successfully.");
     } catch (error) {
@@ -58,6 +69,7 @@ export default function LabPanel() {
       setMessage("Unable to reach the API. Start FastAPI and try again.");
       setSvgData("");
       setDetails(null);
+      setMissingFields([]);
     }
   }
 
@@ -65,7 +77,7 @@ export default function LabPanel() {
     <section className="lab-wrap" id="start" aria-label="Interactive solve panel">
       <div className="section-title">
         <h2>Diagram Workspace</h2>
-        <p>{"Paste one question -> get a deterministic force diagram."}</p>
+        <p>{"Paste one question -> get a deterministic force diagram (with LLM fallback)."}</p>
       </div>
       <div className="lab-grid">
         <div className="lab-input">
@@ -82,6 +94,17 @@ export default function LabPanel() {
               {status === "loading" ? "Solving..." : "Generate Diagram"}
             </ReactiveButton>
             <p className={`status status-${status}`}>{message}</p>
+            {missingFields.length > 0 && (
+              <div className="missing-fields-alert">
+                <ul>
+                  {missingFields.map((field) => (
+                    <li key={field}>
+                      <strong>{field.replaceAll("_", " ")}</strong>
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            )}
           </div>
         </div>
         <div className="lab-output">

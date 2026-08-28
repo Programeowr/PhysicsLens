@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import base64
+import os
 from dataclasses import asdict
 from pathlib import Path
 from tempfile import NamedTemporaryFile
@@ -42,9 +43,13 @@ def _visual_features_dict(vf: VisualFeatures) -> dict:
 
 app = FastAPI(title="Physics Diagram Generator", version="2.0")
 
+# Get allowed origins from environment variable or use wildcard for development
+allowed_origins_str = os.getenv("ALLOWED_ORIGINS", "*")
+allowed_origins = [origin.strip() for origin in allowed_origins_str.split(",")] if allowed_origins_str != "*" else ["*"]
+
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],
+    allow_origins=allowed_origins,
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
@@ -53,14 +58,14 @@ app.add_middleware(
 
 class SolveRequest(BaseModel):
     text: str
-    parser: ParserMode = "deterministic"
-    """Which parser to use: ``"deterministic"`` (default) or ``"llm"``.
+    parser: ParserMode = "llm"
+    """Which parser to use: ``"llm"`` (default) or ``"deterministic"``.
 
-    - ``"deterministic"``: Fast regex/keyword extraction (~5ms).
     - ``"llm"``: Hybrid mode — tries deterministic first, falls back to
       Ollama qwen2.5:7b if the parse is incomplete (~2–10s when LLM runs).
+    - ``"deterministic"``: Fast regex/keyword extraction only (~5ms).
     
-    Most requests should use deterministic. Enable LLM for edge cases.
+    Default is hybrid mode for best accuracy. Use deterministic for speed-critical cases.
     """
 
 

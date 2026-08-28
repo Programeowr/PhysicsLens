@@ -94,18 +94,26 @@ These layers are backward-compatible experiments: the standard pipeline above re
 
 | Mode | Trigger | Behaviour | Speed |
 | --- | --- | --- | --- |
-| **Deterministic** (default) | Always runs first | Keyword classification + regex extraction. Fully offline. Limited to coded patterns. | ~5 ms |
-| **LLM hybrid** | Request body `"parser": "llm"` **and** deterministic parse incomplete | Ollama `qwen2.5:7b` with JSON-schema-constrained output; graceful fallback to deterministic on any failure. | ~2–10 s |
+| **LLM hybrid** (default) | Default mode | Deterministic first, then Ollama `qwen2.5:7b` fallback if incomplete. Fully graceful degradation. | ~9ms fast path, ~10-15s on LLM fallback |
+| **Deterministic** | Request body `"parser": "deterministic"` | Keyword classification + regex extraction only. Fully offline. Limited to coded patterns. | ~5 ms |
 
-The frontend currently does **not** send the `parser` field, so UI traffic is 100% deterministic unless the field is added.
+The frontend and API now default to **hybrid mode** for best accuracy (89.4% vs 68.2%). The deterministic parser handles ~53% of cases instantly; the remaining 47% benefit from LLM assistance.
 
-To use LLM mode locally:
+To use deterministic-only mode:
 
 ```bash
 ollama pull qwen2.5:7b && ollama serve
 curl -X POST http://localhost:8000/solve \
   -H "Content-Type: application/json" \
-  -d '{"text": "A 10kg box on a 25 degree incline", "parser": "llm"}'
+  -d '{"text": "A 10kg box on a 25 degree incline"}'  # uses hybrid mode by default
+```
+
+To explicitly request deterministic-only mode:
+
+```bash
+curl -X POST http://localhost:8000/solve \
+  -H "Content-Type: application/json" \
+  -d '{"text": "A 10kg box on a 25 degree incline", "parser": "deterministic"}'
 ```
 
 ---
