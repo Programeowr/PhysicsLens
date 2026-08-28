@@ -1,0 +1,43 @@
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+.venv*/
+venv*/
+ENV/
+env/
+
+# Tests
+.pytest_cache/
+tests/
+eval/
+
+# Frontend
+frontend/
+node_modules/
+
+# Git
+.git/
+.gitignore
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# Logs
+*.log
+parse_failures.log
+
+# Documentation
+*.md
+!README.md
+
+# Misc
+.DS_Store
+*.svg
+image.png
+diagram.svg

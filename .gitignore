@@ -1,15 +1,22 @@
-# Virtual environments
-venv/
-env/
-.venv/
-
-# Python cache
-__pycache__/
-*.pyc
-*.pyo
-*.pyd
-# Environment variables
-.env
-.env.*
-
 node_modules/
+dist/
+.venv/
+.venv314/
+.tmp/
+.test-run-tmp/
+.pytest_cache/
+pytest-cache-files-*/
+__pycache__/
+*.py[cod]
+.coverage
+coverage.xml
+htmlcov/
+build/
+*.egg-info/
+diagram.svg
+test.svg
+test_suitcase.svg
+parse_failures.log
+test_output.txt
+eval/results/
+

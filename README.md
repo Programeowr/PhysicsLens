@@ -1,166 +1,256 @@
-# PhysicsLens 🔭
+# PhysicsLens
 
 > AI-powered Free Body Diagram generator for physics students. Paste a Newton's Laws problem (or upload a photo) and get an instant, color-coded Free body diagram.
 
-**Built for the AMD Slingshot Hackathon**
+PhysicsLens parses a constrained subset of English-language physics problems, solves the underlying Newtonian equations, and renders publication-ready SVG free-body diagrams — all at runtime with zero network calls.
 
 ---
 
-## Features
+## ✨ Features
 
-- **AI Text Parsing** — Paste any physics problem and Gemini 2.5 Flash extracts objects, surfaces, forces, and friction into structured JSON
-- **Image Upload / OCR** — Snap a photo of a textbook, worksheet, or handwritten problem — Gemini Vision reads and parses it
-- **4 Diagram Types** — Inclined plane, horizontal surface, Atwood machine (pulley), and elevator/vertical scenarios
-- **Color-Coded Forces** — Gravity (blue), Normal (green), Friction (orange), Applied (red), Tension (purple)
-- **React Frontend** — Premium dark-themed UI with text/image tabs, drag-and-drop upload, SVG/PNG export
-- **Validated Output** — Pydantic v2 models with referential integrity checks
-- **Rate Limited** — 10 requests/minute on parsing endpoints (configurable)
+- **Rule-based NLP pipeline** — keyword classification → regex quantity extraction → optional spaCy dependency parsing
+- **Newtonian solvers** for four scenario types (see [Supported Scenarios](#-supported-scenarios))
+- **Pure-SVG rendering** — no native graphics libraries, no Canvas, no Matplotlib
+- **FastAPI server** with JSON (`/solve`) and direct SVG (`/solve.svg`) endpoints
+- **Symbolic algebra** — the Atwood pulley solver uses SymPy to solve tension/acceleration analytically
+
+## 🎯 Supported Scenarios
+
+| Scenario | Example trigger words | Solver |
+|---|---|---|
+| **Inclined Plane** | *incline, ramp, slope, inclination* | Weight decomposition, normal force, optional friction & holding force |
+| **Horizontal Friction** | *horizontal surface, flat surface, floor, table* | Normal force, kinetic friction, applied forces |
+| **Atwood Pulley** | *pulley, atwood, hanging masses* | SymPy symbolic solve for acceleration & tension |
+| **Projectile Motion** | *thrown, launched, projectile, trajectory* | Range, max height, time of flight |
+
+> [!NOTE]
+> The classifier also recognises **circular motion** and **spring-mass** keywords, but solvers for these are not yet implemented. Inputs that match these categories will receive a generic free-body diagram.
 
 ---
 
-## Quick Start
+## 📋 Requirements
 
-### 1. Clone & install backend
+- **Python 3.11+** (verified with 3.11, 3.12, 3.13 and 3.14)
+- Windows, macOS, or Linux
 
-```bash
-git clone https://github.com/Programeowr/PhysicsLens.git
-cd PhysicsLens
-python -m venv venv
-venv\Scripts\activate        # Windows
-# source venv/bin/activate   # macOS/Linux
-pip install -r requirements.txt
+## 🚀 Quick Start
+
+### 1. Create a virtual environment & install dependencies
+
+```powershell
+# Windows PowerShell
+py -3 -m venv .venv
+& .\.venv314\Scripts\python.exe -m pip install -r physics_diagram\requirements.txt
+& .\.venv314\Scripts\python.exe -m spacy download en_core_web_sm
 ```
 
-### 2. Set up environment
-
-Create a `.env` file in the project root:
-
-```env
-GEMINI_API_KEY=your_gemini_api_key_here
+```bash
+# macOS / Linux
+python3 -m venv .venv
+.venv/bin/python -m pip install -r physics_diagram/requirements.txt
+.venv/bin/python -m spacy download en_core_web_sm
 ```
 
-### 3. Install frontend
+> [!TIP]
+> The spaCy model improves noun-to-quantity attachment via dependency parsing, but the parser includes a **rule-based fallback** — the project works without it.
 
-```bash
+### 2. Start the API server
+
+```powershell
+& .\.venv314\Scripts\python.exe -m uvicorn physics_diagram.api:app --reload
+```
+
+The interactive API docs are at **[http://127.0.0.1:8000/docs](http://127.0.0.1:8000/docs)**.
+
+### 3. Run the frontend UI (optional)
+
+The repository includes a brutalist React frontend in `frontend/` with:
+
+- a home page
+- scenario cards for all implemented physics solvers
+- a Get Started section with a text input and live diagram output
+
+```powershell
 cd frontend
 npm install
-```
-
-### 4. Run both servers
-
-```bash
-# Terminal 1 — Backend (from project root)
-uvicorn app.main:app --reload
-
-# Terminal 2 — Frontend (from frontend/)
-cd frontend
 npm run dev
 ```
 
-- **Backend:** http://localhost:8000
-- **Frontend:** http://localhost:5173
+By default, the frontend calls `http://127.0.0.1:8000`. To target a different API host, create `frontend/.env` with:
 
----
+```text
+VITE_API_BASE=http://127.0.0.1:8000
+```
 
-## API Endpoints
+### 4. Generate a diagram
 
-| Method | Endpoint | Description |
-|--------|----------|-------------|
-| `GET` | `/` | Health check + endpoint list |
-| `POST` | `/parse` | Parse a text physics problem → structured JSON |
-| `POST` | `/parse-image` | Upload an image of a question → structured JSON |
-| `POST` | `/diagram` | Generate SVG diagram from parsed JSON |
-| `GET` | `/test-diagram` | Sample inclined plane FBD |
-| `GET` | `/test-diagram/horizontal` | Sample horizontal surface FBD |
-| `GET` | `/test-diagram/pulley` | Sample Atwood machine FBD |
-| `GET` | `/test-diagram/vertical` | Sample elevator FBD |
+**PowerShell:**
 
-### Parse a text problem
+```powershell
+$body = @{
+  text = "A box of mass 5kg is placed on a frictionless inclined plane with 30 degree inclination. How much force is required to keep it at rest?"
+} | ConvertTo-Json
+
+Invoke-WebRequest `
+  -Uri "http://127.0.0.1:8000/solve.svg" `
+  -Method Post `
+  -ContentType "application/json" `
+  -Body $body `
+  -OutFile "diagram.svg"
+```
+
+**curl:**
 
 ```bash
-curl -X POST http://localhost:8000/parse \
+curl -X POST http://127.0.0.1:8000/solve.svg \
   -H "Content-Type: application/json" \
-  -d '{"problem": "A 5 kg block slides down a 30 degree incline with coefficient of friction 0.2"}'
+  -d '{"text": "A box of mass 5kg is on a frictionless 30 degree ramp."}' \
+  -o diagram.svg
 ```
 
-### Parse from image
-
-```bash
-curl -X POST http://localhost:8000/parse-image \
-  -F "file=@photo_of_question.jpg"
-```
-
-Supports: JPEG, PNG, WebP, GIF, BMP (max 10MB)
+Open `diagram.svg` in a browser to view the rendered force diagram.
 
 ---
 
-## Project Structure
+## 🐍 Use from Python
+
+```python
+from physics_diagram.pipeline import solve_and_render
+
+result = solve_and_render(
+    "A box of mass 5kg is placed on a frictionless inclined plane "
+    "with 30 degree inclination. How much force is required to keep it at rest?",
+    "incline.svg",
+)
+
+print(result["status"])                        # "ok"
+print(result["force_solution"].derived_values) # {'normal_force_n': 42.43, ...}
+```
+
+---
+
+## 🔬 API Reference
+
+### `POST /solve`
+
+Returns a JSON response with parsed results and a Base64-encoded SVG.
+
+| Field | Type | Description |
+|---|---|---|
+| `status` | `string` | `"ok"`, `"needs_clarification"`, or `"unsupported_scenario"` |
+| `missing_fields` | `string[]` | Slots the parser could not fill (e.g. `["mass_kg"]`) |
+| `force_solution` | `object` | Solution object containing `scenario_type`, `forces`, and `derived_values` |
+| `diagram_svg_base64` | `string` | Base64-encoded SVG (present only when `status` is `"ok"`) |
+
+### `POST /solve.svg`
+
+Returns the SVG image directly with `Content-Type: image/svg+xml`. Returns a `422` with a plain-text error if the input is incomplete.
+
+Both endpoints accept `{"text": "..."}` as the JSON body.
+
+---
+
+## 🏗️ Architecture
+
+```
+Input text
+    │
+    ▼
+┌──────────────┐     ┌──────────────┐     ┌─────────────────┐     ┌──────────────┐
+│  classifier  │────▶│    parser     │────▶│  physics_engine  │────▶│   renderer   │
+│  (keywords)  │     │  (slots +    │     │  (Newtonian      │     │  (pure SVG)  │
+│              │     │   spaCy)     │     │   solvers)       │     │              │
+└──────────────┘     └──────────────┘     └─────────────────┘     └──────────────┘
+                                                                         │
+                                                                         ▼
+                                                                    diagram.svg
+```
+
+The pipeline flows through five stages:
+
+1. **`classifier.py`** — Scores each scenario by keyword hits; returns the best match and a confidence value.
+2. **`quantities.py`** — Regex-based extraction of masses, angles, speeds, and forces with unit conversion.
+3. **`slots.py`** — Maps extracted quantities to typed schema fields (`ObjectSpec`, `Geometry`, `AppliedForce`).
+4. **`parser.py`** — Orchestrates classification + slot extraction; optionally refines labels with spaCy.
+5. **`validation.py`** — Gates incomplete parses so the solver is never called with missing data.
+6. **`physics_engine.py`** — Scenario-specific Newtonian solvers producing `ForceVector` lists.
+7. **`renderer.py`** — Converts solved forces into positioned SVG arrows with labels and colors.
+
+---
+
+## 📁 Project Layout
 
 ```
 PhysicsLens/
-├── app/                          # Backend (FastAPI)
-│   ├── main.py                   # App init, CORS, rate limiting
-│   ├── config.py                 # Environment config (pydantic-settings)
-│   ├── models.py                 # Pydantic v2 schemas + validation
-│   ├── prompts.py                # AI prompts + few-shot examples
-│   ├── parser.py                 # Gemini text + vision parsing with retry
-│   ├── diagrams/
-│   │   ├── base.py               # SVG utilities, color palette
-│   │   ├── incline.py            # Inclined plane FBD
-│   │   ├── horizontal.py         # Horizontal surface FBD
-│   │   ├── pulley.py             # Atwood machine FBD
-│   │   └── vertical.py           # Elevator / vertical FBD
-│   └── routes/
-│       ├── parse.py              # /parse + /parse-image endpoints
-│       └── diagram.py            # /diagram + /test-diagram endpoints
-├── frontend/                     # Frontend (React + TypeScript + Vite)
-│   ├── src/
-│   │   ├── App.tsx               # Main app component
-│   │   ├── App.css               # Component styles
-│   │   ├── api.ts                # Typed API client
-│   │   ├── index.css             # Design system (dark theme)
-│   │   └── main.tsx              # Entry point
-│   ├── index.html
-│   └── package.json
-├── tests/
-│   ├── test_models.py
-│   ├── test_parser.py
-│   └── test_diagrams.py
-├── .env                          # API keys (not committed)
-├── .gitignore
-├── requirements.txt
-└── README.md
+├── README.md                        ← you are here
+├── physics_diagram/
+│   ├── __init__.py                  ← package entry point
+│   ├── api.py                       ← FastAPI /solve and /solve.svg endpoints
+│   ├── classifier.py                ← keyword-based scenario classification
+│   ├── parser.py                    ← NLP pipeline orchestrator
+│   ├── physics_engine.py            ← Newtonian force solvers (incline, friction, atwood, projectile)
+│   ├── pipeline.py                  ← public solve_and_render() entry point
+│   ├── quantities.py                ← regex quantity extraction & unit conversion
+│   ├── renderer.py                  ← pure-SVG force diagram renderer
+│   ├── schema.py                    ← shared dataclasses (ParseResult, ForceSolution, etc.)
+│   ├── slots.py                     ← quantity → schema slot mapping
+│   ├── validation.py                ← parse completeness gate
+│   ├── requirements.txt             ← Python dependencies
+│   ├── README.md                    ← package-level documentation
+│   └── tests/
+│       ├── test_parser.py           ← parser unit tests
+│       ├── test_physics_engine.py   ← solver correctness tests
+│       └── test_pipeline_integration.py  ← end-to-end integration tests
+└── .gitignore
 ```
 
 ---
 
-## Running Tests
+## 🧪 Running Tests
+
+```powershell
+& .\.venv\Scripts\python.exe -m pytest physics_diagram\tests -q -p no:cacheprovider
+```
 
 ```bash
-python -m pytest tests/ -v
+# macOS / Linux
+.venv/bin/python -m pytest physics_diagram/tests -q -p no:cacheprovider
 ```
 
 ---
 
-## Tech Stack
+## 📝 Example
 
-| Layer | Technology |
-|-------|-----------|
-| Frontend | React 19 + TypeScript + Vite |
-| Backend | FastAPI + Uvicorn |
-| AI | Google Gemini 2.5 Flash (text + vision) |
-| Validation | Pydantic v2 |
-| Rate Limiting | slowapi |
-| Retry | tenacity |
-| Tests | pytest |
+**Input:**
+
+```text
+A box of mass 5kg is placed on a frictionless inclined plane with 30 degree
+inclination. How much force is required to keep it at rest?
+```
+
+**Output (derived values):**
+
+| Quantity | Value |
+|---|---|
+| Normal force | 42.43 N |
+| Gravity component along incline | 24.50 N |
+| Friction force | 0.0 N |
+| Required holding force | 24.50 N |
 
 ---
 
-## Roadmap
+## ⚙️ Dependencies
 
-- [ ] D3.js interactive diagrams (hover, animate force arrows)
-- [ ] Step-by-step FBD construction walkthrough
-- [ ] Newton's equation derivation from diagrams
-- [ ] "What if" mode — tweak mass/angle/force live
-- [ ] Hindi/Tamil support via Bhashini API
-- [ ] Deploy to Railway/Render
+| Package | Purpose |
+|---|---|
+| [spaCy](https://spacy.io/) ≥ 3.7 | Dependency parsing for noun–quantity attachment (optional at runtime) |
+| [SymPy](https://www.sympy.org/) ≥ 1.12 | Symbolic algebra for the Atwood pulley solver |
+| [FastAPI](https://fastapi.tiangolo.com/) ≥ 0.110 | HTTP API framework |
+| [Uvicorn](https://www.uvicorn.org/) ≥ 0.27 | ASGI server |
+| [pytest](https://pytest.org/) ≥ 8.0 | Test runner |
+
+---
+
+## 📄 License
+
+This project does not currently include a license file. Please contact the maintainers for usage terms.

@@ -1,0 +1,138 @@
+/* ─── ReactiveButton ───────────────────────────────────────────────────────── */
+
+/* The gooey-surface div is position:absolute and used only as a particle
+   container. It must NEVER form an independent stacking context (no isolation,
+   no filter, no opacity tricks) so it cannot clip or tint the button background
+   that sits behind it in normal flow. */
+
+.gooey-btn {
+  /* no isolation — let the button bg show through naturally */
+}
+
+.gooey-btn .gooey-surface {
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  pointer-events: none;
+  background: transparent;
+  /* z-index intentionally omitted — stays in paint order behind .gooey-label */
+}
+
+/* Soft ambient glow on hover — purely additive, no stacking context */
+.gooey-btn.is-active .gooey-surface::before {
+  content: "";
+  position: absolute;
+  inset: -32px;
+  background: var(--gooey-glow, rgba(255, 255, 255, 0.15));
+  opacity: 1;
+  filter: blur(18px);
+  pointer-events: none;
+  border-radius: inherit;
+}
+
+/* No ::after pill on primary — the button already has a solid bg */
+.gooey-btn-primary .gooey-surface::after {
+  display: none;
+}
+
+/* Subtle variant gets a faint pill on hover (transparent bg buttons only) */
+.gooey-btn-subtle .gooey-surface::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  border-radius: 999px;
+  background: var(--gooey-fill, rgba(128, 158, 134, 0.16));
+  transform: scale(0.65);
+  opacity: 0;
+  pointer-events: none;
+}
+
+.gooey-btn-subtle .gooey-surface.is-triggered::after {
+  animation: gooey-pill 320ms cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+
+.gooey-btn .gooey-label {
+  position: relative;
+  /* sit above the surface div */
+  z-index: 1;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+
+/* ─── Particles ─────────────────────────────────────────────────────────────── */
+
+.gooey-btn .gooey-particle,
+.gooey-btn .gooey-point {
+  display: block;
+  opacity: 0;
+  width: 14px;
+  height: 14px;
+  border-radius: 999px;
+  transform-origin: center;
+  pointer-events: none;
+}
+
+.gooey-btn .gooey-particle {
+  position: absolute;
+  top: calc(50% - 7px);
+  left: calc(50% - 7px);
+  animation: gooey-particle var(--time) ease 1;
+  z-index: 2;
+}
+
+.gooey-btn .gooey-point {
+  background: var(--particle-color, #ffffff);
+  opacity: 1;
+  animation: gooey-point var(--time) ease 1;
+}
+
+/* ─── Variants ──────────────────────────────────────────────────────────────── */
+
+.gooey-btn-primary {
+  --gooey-glow: rgba(226, 138, 117, 0.3);
+}
+
+.gooey-btn-subtle {
+  --gooey-fill: rgba(128, 158, 134, 0.16);
+  --gooey-glow: rgba(128, 158, 134, 0.2);
+}
+
+.gooey-btn-subtle.is-active {
+  color: var(--accent);
+}
+
+/* ─── Keyframes ─────────────────────────────────────────────────────────────── */
+
+@keyframes gooey-pill {
+  0%   { transform: scale(0.65); opacity: 0; }
+  100% { transform: scale(1);    opacity: 1; }
+}
+
+@keyframes gooey-particle {
+  0% {
+    transform: rotate(0deg) translate(var(--start-x), var(--start-y));
+    opacity: 1;
+    animation-timing-function: cubic-bezier(0.55, 0, 1, 0.45);
+  }
+  70% {
+    transform: rotate(calc(var(--rotate) * 0.5)) translate(calc(var(--end-x) * 1.2), calc(var(--end-y) * 1.2));
+    opacity: 1;
+    animation-timing-function: ease;
+  }
+  85% {
+    transform: rotate(calc(var(--rotate) * 0.66)) translate(var(--end-x), var(--end-y));
+    opacity: 1;
+  }
+  100% {
+    transform: rotate(calc(var(--rotate) * 1.2)) translate(calc(var(--end-x) * 0.5), calc(var(--end-y) * 0.5));
+    opacity: 0;
+  }
+}
+
+@keyframes gooey-point {
+  0%  { transform: scale(0);                    opacity: 0; animation-timing-function: cubic-bezier(0.55, 0, 1, 0.45); }
+  30% { transform: scale(calc(var(--scale) * 0.4)); opacity: 1; }
+  65% { transform: scale(var(--scale));         opacity: 1; animation-timing-function: ease; }
+  100%{ transform: scale(0);                    opacity: 0; }
+}
