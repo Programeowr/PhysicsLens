@@ -22,6 +22,7 @@ from __future__ import annotations
 
 import json
 import logging
+import os
 from typing import Any
 
 import httpx
@@ -42,20 +43,98 @@ logger = logging.getLogger(__name__)
 
 # ── Ollama connection ─────────────────────────────────────────────────────────
 
-import os
+# ── LLM configuration ────────────────────────────────────────────────────────
 
+LLM_PROVIDER = os.getenv("LLM_PROVIDER", "ollama")
+
+# Ollama (local development)
 OLLAMA_URL = os.getenv(
     "OLLAMA_URL",
     "http://localhost:11434"
 )
-LLM_MODEL = os.getenv(
-    "LLM_MODEL",
+OLLAMA_MODEL = os.getenv(
+    "OLLAMA_MODEL",
     "qwen2.5:7b"
 )
+
+# OpenRouter (production)
+OPENROUTER_URL = "https://openrouter.ai/api/v1/chat/completions"
+OPENROUTER_API_KEY = os.getenv("OPENROUTER_API_KEY")
+OPENROUTER_MODEL = os.getenv(
+    "OPENROUTER_MODEL",
+    "openrouter/free"
+)
+
+LLM_TIMEOUT = 60.0
+
 OLLAMA_BASE_URL = OLLAMA_URL
 OLLAMA_MODEL = LLM_MODEL
 OLLAMA_TIMEOUT = 60.0   # seconds — LLM inference can be slow on CPU
 OLLAMA_NUM_CTX = 2048   # reduced context window for faster inference
+
+
+def _call_openrouter(text: str) -> dict[str, Any]:
+    """Send the problem to OpenRouter and return the parsed JSON dict.
+
+    Uses OpenRouter's OpenAI-compatible chat completions API.
+    """
+
+    if not OPENROUTER_API_KEY:
+        raise RuntimeError(
+            "OPENROUTER_API_KEY is not configured"
+        )
+
+    payload = {
+        "model": OPENROUTER_MODEL,
+        "messages": [
+            {
+                "role": "system",
+                "content": _SYSTEM_PROMPT,
+            },
+            {
+                "role": "user",
+                "content": _build_user_prompt(text),
+            },
+        ],
+        "temperature": 0.0,
+        "max_tokens": 1024,
+        "stream": False,
+
+        # Ask OpenRouter/model to return JSON.
+        "response_format": {
+            "type": "json_object"
+        },
+    }
+
+    headers = {
+        "Authorization": f"Bearer {OPENROUTER_API_KEY}",
+        "Content-Type": "application/json",
+    }
+
+    with httpx.Client(timeout=LLM_TIMEOUT) as client:
+        response = client.post(
+            OPENROUTER_URL,
+            headers=headers,
+            json=payload,
+        )
+
+        response.raise_for_status()
+
+    raw = response.json()
+
+    try:
+        content = raw["choices"][0]["message"]["content"]
+    except (KeyError, IndexError, TypeError) as exc:
+        raise ValueError(
+            f"Unexpected OpenRouter response: {raw}"
+        ) from exc
+
+    try:
+        return json.loads(content)
+    except json.JSONDecodeError as exc:
+        raise ValueError(
+            f"OpenRouter returned non-JSON content: {content[:500]}"
+        ) from exc
 
 
 # ── JSON schema sent to the model ─────────────────────────────────────────────
@@ -359,7 +438,10 @@ def parse_with_llm(text: str) -> ParseResult:
         ValueError: Model returned unusable output.
     """
     logger.debug("LLM parse request: %s", text[:120])
-    data = _call_ollama(text)
+    if LLM_PROVIDER == "openrouter":
+        data = _call_openrouter(text)
+    else:
+        data = _call_ollama(text)
 
     scenario_type: str | None = data.get("scenario_type")
     confidence: float = float(data.get("confidence") or 0.0)

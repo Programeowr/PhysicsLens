@@ -19,4 +19,5 @@ test_suitcase.svg
 parse_failures.log
 test_output.txt
 eval/results/
+physics_diagram/.env
 

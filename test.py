@@ -1,34 +1,23 @@
-from ollama import chat
+import requests
 
-SYSTEM_PROMPT = """
-You are a physics parser.
+API_KEY = "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"
 
-Return ONLY valid JSON.
-
-Schema:
-
-{
-    "scenario_type":"",
-    "objects":[],
-    "geometry":{},
-    "friction":"",
-    "mu":null,
-    "applied_forces":[],
-    "unknowns":[]
-}
-"""
-
-QUESTION = """
-A box of mass 5 kg is placed on a frictionless inclined plane of 30 degrees.
-Find the force required to keep it at rest.
-"""
-
-response = chat(
-    model="qwen2.5:7b",
-    messages=[
-        {"role":"system","content":SYSTEM_PROMPT},
-        {"role":"user","content":QUESTION}
-    ]
+response = requests.post(
+    "https://openrouter.ai/api/v1/chat/completions",
+    headers={
+        "Authorization": f"Bearer {API_KEY}",
+        "Content-Type": "application/json",
+    },
+    json={
+        "model": "openrouter/free",
+        "messages": [
+            {
+                "role": "user",
+                "content": "Reply with exactly: PhysicsLens API works"
+            }
+        ],
+    },
 )
 
-print(response["message"]["content"])
+print("Status:", response.status_code)
+print(response.text)
