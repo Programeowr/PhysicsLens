@@ -4,12 +4,14 @@ __pycache__/
 *$py.class
 *.so
 .Python
-.venv*/
-venv*/
+
+.venv/
+.venv314/
+venv/
 ENV/
 env/
 
-# Tests
+# Testing
 .pytest_cache/
 tests/
 eval/
@@ -17,6 +19,8 @@ eval/
 # Frontend
 frontend/
 node_modules/
+frontend/node_modules/
+frontend/dist/
 
 # Git
 .git/
@@ -41,3 +45,8 @@ parse_failures.log
 *.svg
 image.png
 diagram.svg
+
+# Environment
+.env
+.env.*
+!.env.example
